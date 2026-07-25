@@ -718,11 +718,20 @@
     let dragging = false;
     let pointerStart = null;
 
+    function canPan() {
+      if (!modalImage.naturalWidth || !modalImage.naturalHeight) return false;
+      const availableWidth = Math.max(1, canvas.clientWidth - 48);
+      const availableHeight = Math.max(1, canvas.clientHeight - 48);
+      return modalImage.naturalWidth * scale > availableWidth + 1
+        || modalImage.naturalHeight * scale > availableHeight + 1;
+    }
+
     function applyTransform() {
       modalImage.style.left = `calc(50% + ${x}px)`;
       modalImage.style.top = `calc(50% + ${y}px)`;
       modalImage.style.transform = `translate(-50%, -50%) scale(${scale})`;
       canvas.classList.toggle('is-zoomed', scale > fitScale * 1.01);
+      canvas.classList.toggle('is-panable', canPan());
       if (resetButton) {
         const atFit = Math.abs(scale - fitScale) < Math.max(.002, fitScale * .02);
         resetButton.textContent = `${Math.round(scale * 100)}%`;
@@ -735,7 +744,18 @@
       if (!modalImage.naturalWidth || !modalImage.naturalHeight) return 1;
       const availableWidth = Math.max(1, canvas.clientWidth - 48);
       const availableHeight = Math.max(1, canvas.clientHeight - 48);
-      return Math.min(1, availableWidth / modalImage.naturalWidth, availableHeight / modalImage.naturalHeight);
+      const ratio = modalImage.naturalWidth / modalImage.naturalHeight;
+      const fitAll = Math.min(1, availableWidth / modalImage.naturalWidth, availableHeight / modalImage.naturalHeight);
+      if (ratio >= .75) return fitAll;
+      return Math.min(1, availableWidth / modalImage.naturalWidth);
+    }
+
+    function defaultYFor(currentScale) {
+      if (!modalImage.naturalWidth || !modalImage.naturalHeight) return 0;
+      const ratio = modalImage.naturalWidth / modalImage.naturalHeight;
+      const renderedHeight = modalImage.naturalHeight * currentScale;
+      if (ratio >= .75 || renderedHeight <= canvas.clientHeight - 48) return 0;
+      return 24 - canvas.clientHeight / 2 + renderedHeight / 2;
     }
 
     function reset() {
@@ -743,7 +763,7 @@
       scale = fitScale;
       isFitMode = true;
       x = 0;
-      y = 0;
+      y = defaultYFor(scale);
       dragging = false;
       applyTransform();
     }
@@ -760,7 +780,7 @@
       const ratio = scale / previous;
       x = localX - (localX - x) * ratio;
       y = localY - (localY - y) * ratio;
-      if (scale <= fitScale * 1.001) { x = 0; y = 0; }
+      if (scale <= fitScale * 1.001) { x = 0; y = defaultYFor(scale); }
       applyTransform();
     }
 
@@ -794,23 +814,26 @@
       if (modalImage.complete && modalImage.naturalWidth) reset();
     }
 
-    function prepareGalleryPreview(image) {
-      const card = image.closest('.thumb');
+    function prepareDiagramPreview(image) {
+      const card = image.closest('.thumb, .diagram');
       if (!card || image.parentElement?.classList.contains('diagram-preview')) return;
       const preview = document.createElement('div');
       preview.className = 'diagram-preview';
+      preview.tabIndex = 0;
+      preview.setAttribute('role', 'region');
+      preview.setAttribute('aria-label', `${image.alt || '다이어그램'} 스크롤 미리보기`);
       image.before(preview);
       preview.append(image);
       const classify = () => {
         if (!image.naturalWidth || !image.naturalHeight) return;
         const ratio = image.naturalWidth / image.naturalHeight;
         preview.dataset.aspect = ratio > 2.2 ? 'wide' : ratio < .75 ? 'tall' : 'balanced';
-        preview.style.setProperty('--preview-width', `${Math.min(image.naturalWidth, 1600)}px`);
-        preview.style.setProperty('--preview-height', `${Math.min(image.naturalHeight, 900)}px`);
+        preview.style.setProperty('--preview-width', `${Math.min(image.naturalWidth, 2200)}px`);
+        preview.style.setProperty('--preview-height', `${Math.min(image.naturalHeight, 2000)}px`);
         requestAnimationFrame(() => {
           const isWide = preview.dataset.aspect === 'wide';
           preview.scrollLeft = isWide ? Math.max(0, (preview.scrollWidth - preview.clientWidth) / 2) : 0;
-          preview.scrollTop = isWide ? Math.max(0, (preview.scrollHeight - preview.clientHeight) / 2) : 0;
+          preview.scrollTop = 0;
         });
       };
       image.addEventListener('load', classify);
@@ -818,7 +841,7 @@
     }
 
     $$('img.zoomable, img[data-zoom]').forEach(image => {
-      prepareGalleryPreview(image);
+      prepareDiagramPreview(image);
       image.tabIndex = image.tabIndex >= 0 ? image.tabIndex : 0;
       image.setAttribute('role', 'button');
       image.setAttribute('aria-label', `${image.alt || '다이어그램'} 크게 보기`);
@@ -841,7 +864,7 @@
     }, { passive: false });
 
     canvas.addEventListener('pointerdown', event => {
-      if (scale <= fitScale * 1.01 || event.button !== 0) return;
+      if (!canPan() || event.button !== 0) return;
       dragging = true;
       pointerStart = { pointerX: event.clientX, pointerY: event.clientY, x, y };
       canvas.setPointerCapture(event.pointerId);

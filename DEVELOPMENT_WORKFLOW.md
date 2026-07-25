@@ -49,7 +49,7 @@ Pages workflow는 실행 시작 시 `main`과 `dev` SHA를 고정하고 두 커�
 
 PR 병합으로 `main`의 merge commit SHA가 달라지는 것은 정상이며, 기준은 검수한 `dev` 상태가 그대로 포함됐는지다.
 
-`npm run qa`는 release/runtime version 정합성, JavaScript 런타임 테스트, C# 참조 검증, 사이트 셸 일치, DOT source hash와 공개 SVG/PNG 형식·계약 일치, 검색 색인, 정적 계약, manifest, 데스크톱·모바일 브라우저 검사를 포함한다. Graphviz의 바이트 출력은 운영체제·renderer·font 버전에 따라 달라지므로 `assets/diagrams/source-manifest.json`이 UTF-8/LF로 정규화한 source hash로 변경 여부를 판정하고, 공개 SVG의 필수 계약 label은 정적 검증이 별도로 확인한다. 실행 결과는 추적하지 않는 `.artifacts/qa/<commitSha>/qa-results.json`에 두 버전, commit SHA, 도구 버전, stage별 상태와 count로 기록하며 CI는 이를 commit-keyed Actions artifact로 업로드한다. CI는 검색 색인 재생성 뒤 `git diff --exit-code`도 실행해 생성 결과가 커밋과 다르면 실패한다.
+`npm run qa`는 release/runtime version 정합성, JavaScript 런타임 테스트, C# 참조 검증, 사이트 셸 일치, DOT render-input hash와 공개 SVG/PNG 형식·계약 일치, 검색 색인, 정적 계약, manifest, 데스크톱·모바일 브라우저 검사를 포함한다. Graphviz의 바이트 출력은 운영체제·renderer·font 버전에 따라 달라지므로 `assets/diagrams/source-manifest.json`이 UTF-8/LF로 정규화한 DOT에 공통 render profile을 적용한 입력 hash와 profile id로 변경 여부를 판정하고, 공개 SVG의 필수 계약 label은 정적 검증이 별도로 확인한다. 실행 결과는 추적하지 않는 `.artifacts/qa/<commitSha>/qa-results.json`에 두 버전, commit SHA, 도구 버전, stage별 상태와 count로 기록하며 CI는 이를 commit-keyed Actions artifact로 업로드한다. CI는 검색 색인 재생성 뒤 `git diff --exit-code`도 실행해 생성 결과가 커밋과 다르면 실패한다.
 
 `MANIFEST.sha256`은 UTF-8 텍스트의 줄바꿈을 LF로 정규화해 해시하고, 바이너리는 원본 바이트를 해시한다. 따라서 Windows와 Linux의 체크아웃 줄바꿈 차이는 manifest 결과를 바꾸지 않는다.
 
@@ -63,13 +63,14 @@ PR 병합으로 `main`의 merge commit SHA가 달라지는 것은 정상이며, 
 - 브라우저 Runtime Contract Lab: `source/runtime/`
 - 계약 스키마: `source/contracts/`
 - 다이어그램 원본: `source/diagrams/`
+- 다이어그램 공통 테마와 생성 profile: `source/tools/render_diagrams.py`
 - 공개 다이어그램 출력: `assets/diagrams/`
 - 공개 페이지 목록과 검색 구성: `source/site-map.json`
 - 사이트 정합성 검사: `source/tools/validate_site.py`
 - 브라우저 UX 검사: `source/tools/browser_smoke.py`
 - 과거 QA 증빙: `source/qa/history/<releaseVersion>/<commitSha>.json`
 
-다이어그램 출력만 직접 고치지 않는다. 원본 DOT을 수정한 뒤 SVG와 PNG를 다시 생성한다.
+다이어그램 출력만 직접 고치지 않는다. 내용·관계·개별 배치는 원본 DOT에서, 공통 팔레트·선·타이포그래피는 render profile에서 수정한 뒤 SVG와 PNG를 다시 생성한다.
 
 Graphviz와 `Noto Sans KR` 폰트를 설치한 개발 환경에서 다음 명령으로 34개 출력을 함께 갱신한다. Windows 기본 Graphviz 설치 경로는 자동 탐색하며, 별도 경로는 `GRAPHVIZ_DOT` 환경 변수로 지정한다.
 

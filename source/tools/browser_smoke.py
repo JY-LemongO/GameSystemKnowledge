@@ -470,6 +470,10 @@ with sync_playwright() as p:
     page.evaluate('window.__printCalled=false; window.print=()=>{window.__printCalled=true}')
     page.locator('[data-print-page]').first.click()
     check(page.evaluate('window.__printCalled'),'print:data-print-page-listener')
+    check(
+        page.locator('.diagram > .diagram-preview').count()==page.locator('.diagram img.zoomable').count(),
+        'diagram:inline-scroll-previews-ready',
+    )
     page.locator('img.zoomable').first.click()
     check(page.locator('[data-diagram-modal]').evaluate('el => el.open'),'diagram:modal-open')
     page.wait_for_function("document.querySelector('[data-zoom-reset]')?.textContent !== '100%'")
@@ -497,6 +501,16 @@ with sync_playwright() as p:
     check(wide_fit.endswith('%') and int(wide_fit[:-1]) < 50,'diagram-gallery:wide-fit-scale-reported')
     gallery.locator('[data-zoom-reset]').click()
     check(gallery.locator('[data-zoom-reset]').inner_text()=='100%','diagram-gallery:wide-native-scale')
+    gallery.keyboard.press('Escape')
+    tall=gallery.locator('img[alt="Resolve · Commit · Reaction"]')
+    check(tall.count()==1,'diagram-gallery:tall-diagram-present')
+    tall.scroll_into_view_if_needed()
+    gallery.wait_for_function("document.querySelector('img[alt=\"Resolve · Commit · Reaction\"]')?.parentElement?.dataset.aspect === 'tall'")
+    tall_preview=tall.locator('xpath=..')
+    check(tall_preview.evaluate('el => el.scrollHeight > el.clientHeight'),'diagram-gallery:tall-preview-scrollable')
+    tall.click()
+    gallery.wait_for_function("document.querySelector('[data-diagram-canvas]')?.classList.contains('is-panable')")
+    check(gallery.locator('[data-diagram-canvas]').get_attribute('class').find('is-panable')>=0,'diagram-gallery:tall-native-view-panable')
     gallery.keyboard.press('Escape')
     gallery.close()
     context.close(); browser.close()
