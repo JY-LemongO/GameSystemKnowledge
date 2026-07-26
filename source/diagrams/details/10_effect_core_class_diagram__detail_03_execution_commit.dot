@@ -1,0 +1,27 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.28, ranksep=0.82, nodesep=0.58, outputorder=edgesfirst, splines=polyline, label="Effect 핵심 클래스 상세 3 · 실행 디스패치와 커밋 경계", labelloc=t, fontsize=16];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.16,0.10"];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=9, arrowsize=0.8, penwidth=1.3];
+
+  rankdir=TB;
+
+  EffectPipeline [label="EffectPipeline\nExecute / Prepare 조율", fillcolor="#eaf0ff", color="#8292f7"];
+  IEffectOperationExecutor [label="<<internal interface>>\nIEffectOperationExecutor\nCanExecute + BuildPlan", fillcolor="#f3eefc", color="#ab8fe0"];
+  DamageEffectExecutor [label="DamageEffectExecutor\nDamageRequest와 mutation 계획", fillcolor="#eefbf6", color="#61b99a"];
+  ApplyStatusExecutor [label="ApplyStatusExecutor\nApplyStatusRequest와 reaction 계획", fillcolor="#eefbf6", color="#61b99a"];
+  ModifyResourceExecutor [label="ModifyResourceExecutor\nresource mutation과 invariant", fillcolor="#eefbf6", color="#61b99a"];
+  EffectBundlePlan [label="EffectBundlePlan\nPrimaryOperations + Reactions", fillcolor="#e9fbff", color="#54b7cf"];
+  CommitPlan [label="CommitPlan\n도메인 resolve·compose 이후 확정", fillcolor="#e9fbff", color="#54b7cf"];
+  RuntimeCommitter [label="RuntimeCommitter\n상태 + outbox 원자적 커밋", fillcolor="#fff7e6", color="#e0ad4e"];
+
+  { rank=same; DamageEffectExecutor; ApplyStatusExecutor; ModifyResourceExecutor; }
+  { rank=same; IEffectOperationExecutor; EffectBundlePlan; }
+
+  EffectPipeline -> IEffectOperationExecutor [label="Operation별 디스패치", color="#7257A6"];
+  DamageEffectExecutor -> IEffectOperationExecutor [label="구현", arrowhead=empty, style=dashed, color="#3D8B6D"];
+  ApplyStatusExecutor -> IEffectOperationExecutor [label="구현", arrowhead=empty, style=dashed, color="#3D8B6D"];
+  ModifyResourceExecutor -> IEffectOperationExecutor [label="구현", arrowhead=empty, style=dashed, color="#3D8B6D"];
+  EffectPipeline -> EffectBundlePlan [label="Prepare 반환", color="#397B8C"];
+  EffectBundlePlan -> CommitPlan [label="도메인 해석·합성 경계", style=dotted, color="#8292A8"];
+  CommitPlan -> RuntimeCommitter [label="CommitPlan만 전달", color="#3D8B6D"];
+}

@@ -298,26 +298,78 @@
 </div>
 </div>
 <div class="sticky">
-<figure class="diagram">
-<div class="dh">
-<strong>
-          Effect 핵심 클래스 다이어그램
-         </strong>
-<div class="da">
-<a class="small" href="../assets/diagrams/10_effect_core_class_diagram.svg" target="_blank">
-           SVG
-          </a>
-<a class="small" href="../assets/diagrams/10_effect_core_class_diagram.png" target="_blank">
-           PNG
-          </a>
+<div class="card">
+<span class="section-kicker">Diagram story</span>
+<h3>한 장이 아니라 세 경계로 읽기</h3>
+<p>정의 작성, 공개 실행 계약, 전략 실행을 각각 분리하면 클래스 사이의 책임과 확장 지점을 선을 따라가기 전에 이해할 수 있다.</p>
+<a class="button secondary" href="#effect-core-diagram-story">3단계 다이어그램 보기</a>
 </div>
 </div>
-<img alt="Effect 핵심 클래스 다이어그램" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/10_effect_core_class_diagram.svg"/>
-<figcaption class="cap">
-         기존 EffectBundle·planner/executor port와 product 확장 UML을 보여 주는 그림이다. 별도의 실행 참조인 ReferenceEffectSpecification·ReferenceEffectTargetResolver·CommitPlanFragment·DeterministicEffectCommitPlanComposer는 source 링크의 C# 코드가 기준이며 이 그림에는 아직 반영되지 않았다.
-        </figcaption>
+</section>
+<section aria-labelledby="effect-core-diagram-story-title" class="diagram-story" data-diagram-series="10_effect_core_class_diagram" id="effect-core-diagram-story">
+<div class="diagram-story-head">
+<div>
+<span class="section-kicker">Diagram story · overview + details</span>
+<h3 id="effect-core-diagram-story-title">Effect 핵심 클래스를 세 경계로 읽기</h3>
+<p>콘텐츠 정의가 실행 계약으로 바뀌고, operation별 전략이 결과와 plan을 만드는 순서로 읽는다. 각 장은 하나의 질문에만 답한다.</p>
+</div>
+<span class="diagram-story-count">3 DETAIL VIEWS</span>
+</div>
+<ol class="diagram-step-list">
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>정의 작성과 정규화</h4>
+<p>정적 콘텐츠가 어떤 선택·값·조건을 소유하고, 어디에서 실행 가능한 operation으로 변환되는지 본다.</p>
+<ul>
+<li>TargetSelector·ValueExpression·EffectCondition은 정의의 일부다.</li>
+<li>DefinitionNormalizer가 콘텐츠 입력을 런타임 경계로 넘긴다.</li>
+</ul>
+</div>
+<figure aria-labelledby="effect-core-detail-01-title" class="diagram" data-diagram-view="detail-01">
+<div class="dh"><strong id="effect-core-detail-01-title">01 · Definition authoring &amp; normalization</strong><div class="da"><a class="small" href="../assets/diagrams/details/10_effect_core_class_diagram__detail_01_definition_model.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/10_effect_core_class_diagram__detail_01_definition_model.png" target="_blank">PNG</a></div></div>
+<img alt="Effect 정의 데이터가 정규화되어 런타임 operation이 되는 관계" aria-describedby="effect-core-detail-01-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/10_effect_core_class_diagram__detail_01_definition_model.svg"/>
+<figcaption class="cap" id="effect-core-detail-01-caption">작성용 정의와 실행용 operation 사이에 정규화 경계를 둔다. 콘텐츠 데이터가 executor 구현을 직접 참조하지 않는 것이 핵심이다.</figcaption>
 </figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>공개 실행 계약</h4>
+<p>요청 입력, bundle 조합, context, 실행과 준비 결과를 public contract만으로 좁혀 본다.</p>
+<ul>
+<li><code>Prepare</code>는 commit 가능한 plan을 만들고 상태를 쓰지 않는다.</li>
+<li><code>Execute</code> 결과와 <code>EffectBundlePlan</code>의 역할을 구분한다.</li>
+</ul>
 </div>
+<figure aria-labelledby="effect-core-detail-02-title" class="diagram" data-diagram-view="detail-02">
+<div class="dh"><strong id="effect-core-detail-02-title">02 · Public runtime contracts</strong><div class="da"><a class="small" href="../assets/diagrams/details/10_effect_core_class_diagram__detail_02_runtime_contracts.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/10_effect_core_class_diagram__detail_02_runtime_contracts.png" target="_blank">PNG</a></div></div>
+<img alt="EffectOperation과 EffectBundle, EffectContext, planner와 executor 공개 계약" aria-describedby="effect-core-detail-02-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/10_effect_core_class_diagram__detail_02_runtime_contracts.svg"/>
+<figcaption class="cap" id="effect-core-detail-02-caption">Bundle은 여러 operation을 조합하고 Context는 실행 시점 입력을 제공한다. Planner의 출력은 atomic commit 이전의 준비 결과다.</figcaption>
+</figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>전략 선택과 실행</h4>
+<p>파이프라인이 operation 종류별 전략에 위임하고 Damage·Status·Resource 결과를 만드는 확장 지점을 확인한다.</p>
+<ul>
+<li>공통 pipeline은 dispatch와 공통 순서만 소유한다.</li>
+<li>각 executor가 자기 도메인의 계산 또는 요청 생성을 책임진다.</li>
+</ul>
+</div>
+<figure aria-labelledby="effect-core-detail-03-title" class="diagram" data-diagram-view="detail-03">
+<div class="dh"><strong id="effect-core-detail-03-title">03 · Runtime strategy dispatch</strong><div class="da"><a class="small" href="../assets/diagrams/details/10_effect_core_class_diagram__detail_03_execution_commit.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/10_effect_core_class_diagram__detail_03_execution_commit.png" target="_blank">PNG</a></div></div>
+<img alt="EffectPipeline이 operation별 executor 전략에 위임하는 실행 구조" aria-describedby="effect-core-detail-03-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/10_effect_core_class_diagram__detail_03_execution_commit.svg"/>
+<figcaption class="cap" id="effect-core-detail-03-caption">파이프라인은 구체 효과를 직접 계산하지 않는다. operation별 전략을 선택하고 결과 또는 commit 준비물만 다음 경계로 전달한다.</figcaption>
+</figure>
+</li>
+</ol>
+<details class="diagram-overview">
+<summary>전체 클래스 지도 보기 · 모든 관계를 한 화면에서 확인</summary>
+<figure aria-labelledby="effect-core-overview-title" class="diagram" data-diagram-view="overview">
+<div class="dh"><strong id="effect-core-overview-title">Effect 핵심 클래스 · Overview</strong><div class="da"><a class="small" href="../assets/diagrams/10_effect_core_class_diagram.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/10_effect_core_class_diagram.png" target="_blank">PNG</a></div></div>
+<img alt="Effect 핵심 클래스 전체 관계 개요" aria-describedby="effect-core-overview-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/10_effect_core_class_diagram.svg"/>
+<figcaption class="cap" id="effect-core-overview-caption">세 상세 장을 읽은 뒤 정의, 공개 계약, 전략 실행의 전체 연결을 복습하는 지도다. 별도 실행 참조 타입의 최종 기준은 연결된 C# source다.</figcaption>
+</figure>
+</details>
 </section>
 <h2 id="왜-effect가-중간-계층인가">
       왜 Effect가 중간 계층인가?
@@ -597,22 +649,71 @@ EffectTargetResolutionPlan resolution =
 DamageEffectOperation request =
     (DamageEffectOperation)resolution.Operations.Single().BoundOperation;</code></pre>
 <div class="callout"><b>실행 증거.</b> <a href="../source/csharp/GameSystemKnowledge.Reference.Verification/AdvancedFoundationVerification.cs"><code>AdvancedFoundationVerification.cs</code></a>는 정상 Self/Explicit/candidate bind, 같은 metric의 EntityId tie-break, 빈 snapshot과 missing explicit target의 NotApplicable, duplicate candidate와 rule mismatch 실패를 검증한다.</div>
-<figure class="diagram">
-<div class="dh">
-<strong>
-        Effect 실행 시퀀스 다이어그램
-       </strong>
-<div class="da">
-<a class="small" href="../assets/diagrams/11_effect_execution_sequence_diagram.svg" target="_blank">
-         SVG
-        </a>
+<section aria-labelledby="effect-execution-diagram-story-title" class="diagram-story" data-diagram-series="11_effect_execution_sequence_diagram" id="effect-execution-diagram-story">
+<div class="diagram-story-head">
+<div>
+<span class="section-kicker">Diagram story · handoff sequence</span>
+<h3 id="effect-execution-diagram-story-title">Effect 실행을 세 번의 handoff로 읽기</h3>
+<p>대상은 한 번만 확정하고, 계산은 순수하게 수행하며, 상태와 outbox는 마지막 atomic commit에서만 바뀐다는 세 경계를 분리한다.</p>
 </div>
+<span class="diagram-story-count">3 DETAIL VIEWS</span>
 </div>
-<img alt="Effect 실행 시퀀스 다이어그램" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/11_effect_execution_sequence_diagram.svg"/>
-<figcaption class="cap">
-       이 혼합 흐름은 실행 가능한 C# handoff와 아직 필요한 product adapter를 함께 보인다. caller는 target-independent specification을 전달하고, 공간 adapter가 eligibility와 정수 metric을 확정한 candidate snapshot을 만든다. domain target resolver는 Self·ExplicitTarget·snapshot을 한 번만 bind하고 eligibility를 다시 판정하지 않는다. 소유 resolver가 pure outcome/fragment를 만들고 composer와 runtime committer가 plan·state·outbox를 확정한 뒤 외부 dispatcher가 committed fact를 전달한다. 기존 target-bound <code>EffectOperation</code>/<code>EffectBundlePlan</code>을 resolver 입력으로 되돌리는 흐름이 아니다.
-      </figcaption>
+<ol class="diagram-step-list">
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Intent에서 target-bound operation까지</h4>
+<p>호출자는 target-independent specification을 전달하고 adapter가 후보 스냅샷을 동결한다. resolver는 여기서 대상을 한 번만 bind한다.</p>
+<ul>
+<li>Self·ExplicitTarget·CandidateSnapshot 경로를 구분한다.</li>
+<li>missing 입력은 NotApplicable, 잘못된 계약은 Reject로 끝난다.</li>
+</ul>
+</div>
+<figure aria-labelledby="effect-execution-detail-01-title" class="diagram" data-diagram-view="detail-01">
+<div class="dh"><strong id="effect-execution-detail-01-title">01 · Specification, snapshot &amp; target binding</strong><div class="da"><a class="small" href="../assets/diagrams/details/11_effect_execution_sequence_diagram__detail_01_intent_target_bind.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/11_effect_execution_sequence_diagram__detail_01_intent_target_bind.png" target="_blank">PNG</a></div></div>
+<img alt="Effect specification과 후보 snapshot이 대상이 확정된 operation으로 변환되는 흐름" aria-describedby="effect-execution-detail-01-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/11_effect_execution_sequence_diagram__detail_01_intent_target_bind.svg"/>
+<figcaption class="cap" id="effect-execution-detail-01-caption">공간 adapter가 eligibility와 정수 metric을 확정한 뒤 domain resolver가 canonical 순서를 유지해 대상을 bind한다. 이후 단계는 대상을 다시 고르지 않는다.</figcaption>
 </figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Pure outcome에서 deterministic plan까지</h4>
+<p>소유 resolver가 상태를 쓰지 않고 outcome을 계산하고, fragment가 있는 결과만 composer가 안정 순서로 합친다.</p>
+<ul>
+<li>Ready·NoChanges·Rejected 결과를 명시적으로 분리한다.</li>
+<li>identity 충돌은 commit 전에 composition 단계에서 거부한다.</li>
+</ul>
+</div>
+<figure aria-labelledby="effect-execution-detail-02-title" class="diagram" data-diagram-view="detail-02">
+<div class="dh"><strong id="effect-execution-detail-02-title">02 · Outcome, fragment &amp; composition</strong><div class="da"><a class="small" href="../assets/diagrams/details/11_effect_execution_sequence_diagram__detail_02_resolve_compose.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/11_effect_execution_sequence_diagram__detail_02_resolve_compose.png" target="_blank">PNG</a></div></div>
+<img alt="대상이 확정된 operation이 순수 outcome과 commit fragment를 거쳐 plan으로 조합되는 흐름" aria-describedby="effect-execution-detail-02-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/11_effect_execution_sequence_diagram__detail_02_resolve_compose.svg"/>
+<figcaption class="cap" id="effect-execution-detail-02-caption">계산과 변경을 분리한다. resolver의 출력은 결과와 fragment이며, composer는 mutation과 planned outbox를 하나의 결정적 plan으로 만든다.</figcaption>
+</figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Atomic commit 이후에만 react</h4>
+<p>RuntimeCommitter가 version과 invariant를 확인해 state와 outbox를 함께 확정한다. dispatcher와 reaction은 committed fact만 소비한다.</p>
+<ul>
+<li>NoChanges와 Reject는 mutation·outbox 없이 종료한다.</li>
+<li>ReactionQueue는 새 command를 만들며 기존 commit을 재진입하지 않는다.</li>
+</ul>
+</div>
+<figure aria-labelledby="effect-execution-detail-03-title" class="diagram" data-diagram-view="detail-03">
+<div class="dh"><strong id="effect-execution-detail-03-title">03 · Atomic commit, dispatch &amp; reaction</strong><div class="da"><a class="small" href="../assets/diagrams/details/11_effect_execution_sequence_diagram__detail_03_commit_react.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/11_effect_execution_sequence_diagram__detail_03_commit_react.png" target="_blank">PNG</a></div></div>
+<img alt="준비된 Effect plan이 atomic commit과 fact dispatch를 거쳐 reaction command가 되는 흐름" aria-describedby="effect-execution-detail-03-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/11_effect_execution_sequence_diagram__detail_03_commit_react.svg"/>
+<figcaption class="cap" id="effect-execution-detail-03-caption">상태 변경과 outbox 기록의 성공 여부가 하나다. 외부 dispatch와 상태 변경 반응은 commit receipt 이후 단계로 밀려난다.</figcaption>
+</figure>
+</li>
+</ol>
+<details class="diagram-overview">
+<summary>전체 14단계 handoff 보기</summary>
+<figure aria-labelledby="effect-execution-overview-title" class="diagram" data-diagram-view="overview">
+<div class="dh"><strong id="effect-execution-overview-title">Effect 실행 시퀀스 · Overview</strong><div class="da"><a class="small" href="../assets/diagrams/11_effect_execution_sequence_diagram.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/11_effect_execution_sequence_diagram.png" target="_blank">PNG</a></div></div>
+<img alt="Effect 실행의 전체 handoff 시퀀스" aria-describedby="effect-execution-overview-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/11_effect_execution_sequence_diagram.svg"/>
+<figcaption class="cap" id="effect-execution-overview-caption">세 상세 장의 연결을 한 번에 복습하는 전체 흐름이다. 실행 가능한 C# handoff와 product adapter 확장 경계를 함께 표시한다.</figcaption>
+</figure>
+</details>
+</section>
 <ol>
 <li><strong>Intent.</strong> target-independent Effect spec과 실행 context를 검증한다.</li>
 <li><strong>Resolve targets once.</strong> adapter가 eligibility와 정수 metric 값을 확정하면 <code>EffectTargetCandidate</code> 생성자가 metric 범위를, <code>CanonicalTargetSnapshot</code> 생성자가 null·중복과 canonical total order를 보장한다. resolver는 이 동결 입력을 받아 mode·필수 snapshot을 확인하고 <code>MaxTargets</code>만 적용하며 팀·거리·시야를 다시 판정하지 않는다.</li>
@@ -1082,25 +1183,71 @@ if (composition.Status == EffectCompositionStatus.Ready)
 <h2 id="생명주기">
       생명주기
      </h2>
-<figure class="diagram">
-<div class="dh">
-<strong>
-        Effect 생명주기 상태 다이어그램
-       </strong>
-<div class="da">
-<a class="small" href="../assets/diagrams/14_effect_lifecycle_state_diagram.svg" target="_blank">
-         SVG
-        </a>
-<a class="small" href="../assets/diagrams/14_effect_lifecycle_state_diagram.png" target="_blank">
-         PNG
-        </a>
+<section aria-labelledby="effect-lifecycle-diagram-story-title" class="diagram-story" data-diagram-series="14_effect_lifecycle_state_diagram" id="effect-lifecycle-diagram-story">
+<div class="diagram-story-head">
+<div>
+<span class="section-kicker">Diagram story · lifecycle states</span>
+<h3 id="effect-lifecycle-diagram-story-title">Effect 생명주기를 세 상태 구간으로 읽기</h3>
+<p>등록·호출, 검증·대상 확정, 준비·commit 이후를 분리한다. 실행 C# 경계와 product 확장 상태를 같은 선으로 오해하지 않도록 표시한다.</p>
 </div>
+<span class="diagram-story-count">3 DETAIL VIEWS</span>
 </div>
-<img alt="Effect 생명주기 상태 다이어그램" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/14_effect_lifecycle_state_diagram.svg"/>
-<figcaption class="cap">
-       구현된 runtime state machine을 뜻하는 그림이 아니라 product 생명주기의 개념 모델이다. 다만 실행 C#의 핵심 handoff인 target-independent <code>ReferenceEffectSpecification</code> → adapter snapshot → one-shot target bind → target-bound <code>ResolvedEffectOperation</code> → pure outcome/fragment → deterministic composition은 실제 타입명으로 표시했다. Scheduled·Waiting Trigger·Cancelled와 registry 조율은 product extension이다.
-      </figcaption>
+<ol class="diagram-step-list">
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>등록, 예약, 트리거</h4>
+<p>정의가 요청으로 들어오는 직접 경로와 시간 예약 또는 committed-fact 트리거가 새 요청을 만드는 확장 경로를 구분한다.</p>
+<ul>
+<li>Scheduled·WaitingTrigger는 product orchestration 상태다.</li>
+<li>ReactionQueued도 기존 실행 재진입이 아니라 새 command 시작점이다.</li>
+</ul>
+</div>
+<figure aria-labelledby="effect-lifecycle-detail-01-title" class="diagram" data-diagram-view="detail-01">
+<div class="dh"><strong id="effect-lifecycle-detail-01-title">01 · Registration, scheduling &amp; triggering</strong><div class="da"><a class="small" href="../assets/diagrams/details/14_effect_lifecycle_state_diagram__detail_01_request_validation.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/14_effect_lifecycle_state_diagram__detail_01_request_validation.png" target="_blank">PNG</a></div></div>
+<img alt="Effect 정의가 직접 요청, 예약 요청, 반응 요청으로 시작되는 상태 흐름" aria-describedby="effect-lifecycle-detail-01-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/14_effect_lifecycle_state_diagram__detail_01_request_validation.svg"/>
+<figcaption class="cap" id="effect-lifecycle-detail-01-caption">등록된 정의는 직접 요청되거나 product scheduler와 reaction registry를 통해 나중에 새 요청이 된다. 점선 상태는 현재 reference 밖의 조율 책임이다.</figcaption>
 </figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>검증과 one-shot target binding</h4>
+<p>요청 계약과 후보 snapshot을 검증한 뒤 대상을 한 번 확정한다. 정상적인 빈 결과와 잘못된 입력을 별도 종료 상태로 보낸다.</p>
+<ul>
+<li>NotApplicable은 실패가 아니라 적용 대상이 없는 유효 결과다.</li>
+<li>Cancelled와 Failed는 commit 이전에 종료한다.</li>
+</ul>
+</div>
+<figure aria-labelledby="effect-lifecycle-detail-02-title" class="diagram" data-diagram-view="detail-02">
+<div class="dh"><strong id="effect-lifecycle-detail-02-title">02 · Validation &amp; one-shot target binding</strong><div class="da"><a class="small" href="../assets/diagrams/details/14_effect_lifecycle_state_diagram__detail_02_resolve_planning.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/14_effect_lifecycle_state_diagram__detail_02_resolve_planning.png" target="_blank">PNG</a></div></div>
+<img alt="Effect 요청이 검증과 대상 확정을 거쳐 resolved 상태가 되는 흐름" aria-describedby="effect-lifecycle-detail-02-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/14_effect_lifecycle_state_diagram__detail_02_resolve_planning.svg"/>
+<figcaption class="cap" id="effect-lifecycle-detail-02-caption">adapter가 만든 canonical snapshot의 구조를 확인하고 resolver가 mode에 따라 대상을 bind한다. eligibility는 이 단계에서 다시 계산하지 않는다.</figcaption>
+</figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Composition, commit, observation</h4>
+<p>outcome과 fragment를 준비해 Ready·NoCommit·Failed로 나누고, Ready만 atomic commit과 reaction으로 이어진다.</p>
+<ul>
+<li>NoChanges는 관찰되지만 상태나 outbox를 만들지 않는다.</li>
+<li>Committed fact 이후에만 ReactionQueued로 이동한다.</li>
+</ul>
+</div>
+<figure aria-labelledby="effect-lifecycle-detail-03-title" class="diagram" data-diagram-view="detail-03">
+<div class="dh"><strong id="effect-lifecycle-detail-03-title">03 · Composition, commit &amp; observation</strong><div class="da"><a class="small" href="../assets/diagrams/details/14_effect_lifecycle_state_diagram__detail_03_commit_reaction.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/14_effect_lifecycle_state_diagram__detail_03_commit_reaction.png" target="_blank">PNG</a></div></div>
+<img alt="Effect 결과가 plan으로 준비되고 atomic commit과 관찰 및 reaction으로 이어지는 상태 흐름" aria-describedby="effect-lifecycle-detail-03-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/14_effect_lifecycle_state_diagram__detail_03_commit_reaction.svg"/>
+<figcaption class="cap" id="effect-lifecycle-detail-03-caption">Ready만 RuntimeCommitter로 들어간다. commit 성공 이후 committed fact를 관찰하고 상태 변경 반응은 별도의 queue command가 된다.</figcaption>
+</figure>
+</li>
+</ol>
+<details class="diagram-overview">
+<summary>전체 생명주기 지도 보기</summary>
+<figure aria-labelledby="effect-lifecycle-overview-title" class="diagram" data-diagram-view="overview">
+<div class="dh"><strong id="effect-lifecycle-overview-title">Effect 생명주기 · Overview</strong><div class="da"><a class="small" href="../assets/diagrams/14_effect_lifecycle_state_diagram.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/14_effect_lifecycle_state_diagram.png" target="_blank">PNG</a></div></div>
+<img alt="Effect 전체 생명주기 상태 지도" aria-describedby="effect-lifecycle-overview-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/14_effect_lifecycle_state_diagram.svg"/>
+<figcaption class="cap" id="effect-lifecycle-overview-caption">구현된 단일 state machine이 아니라 실행 handoff와 product orchestration을 함께 설명하는 개념 지도다. 세 상세 장을 읽은 뒤 전체 분기와 루프를 복습한다.</figcaption>
+</figure>
+</details>
+</section>
 <h2 id="구현-안티패턴">
       구현 안티패턴
      </h2>

@@ -1,0 +1,26 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.28, ranksep=0.82, nodesep=0.76, newrank=true, splines=polyline, label="Skill Data Model 상세 3/3 · public 결과와 commit 증거", labelloc=t, fontsize=18];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.18,0.11", width=2.9, height=0.58];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=10, arrowsize=0.8, penwidth=1.3];
+  rankdir=TB;
+
+  ReleasePlan [style="rounded,dashed,filled", label="<<internal project model · product-only>>\nSkillReleasePlan\nSkillMutation + EffectBundlePlan + preconditions", fillcolor="#e9fbff", color="#54b7cf"];
+  CommitPlan [label="<<runtime commit contract>> CommitPlan\n순서가 고정된 mutation + planned outbox", fillcolor="#fff7e6", color="#e0ad4e"];
+  Committer [label="RuntimeCommitter\n모든 invariant를 검증한 뒤\n상태 + outbox를 원자적으로 확정", fillcolor="#eefbf6", color="#61b99a"];
+  Receipt [label="<<public runtime contract>> CommitReceipt\ncommit 성공 여부와 공개 결과 증거", fillcolor="#fff7e6", color="#e0ad4e"];
+  SkillRuntime [style="rounded,dashed,filled", label="<<product model>> SkillRuntime\n성공 receipt 뒤 commit된 mutation만 반영", fillcolor="#eaf0ff", color="#8292f7"];
+  Facts [label="<<실행 증거>> committed outbox facts\nSkillCommitted · DamageCommitted\n관찰은 commit 이후에만 시작", fillcolor="#e9fbff", color="#54b7cf"];
+  Result [label="<<public contract · 실행 C#>> SkillResult\nSucceeded · FailureReason?\nEffects + public CommitReceipt", fillcolor="#f0f3f9", color="#99a8bd"];
+  Trace [label="DebugTrace / observation\n계산 근거와 committed facts를 구분\n권위 상태를 소유하지 않음", fillcolor="#f0f3f9", color="#99a8bd"];
+
+  { rank=same; SkillRuntime; Facts; Result; }
+
+  ReleasePlan -> CommitPlan [label="commit 입력으로 조합", style=dashed];
+  CommitPlan -> Committer [label="Commit"];
+  Committer -> Receipt [label="원자 결과"];
+  Receipt -> SkillRuntime [label="product 상태 반영", style=dashed];
+  Receipt -> Facts [label="state + outbox 성공"];
+  Receipt -> Result [label="public 반환"];
+  Facts -> Trace [label="committed fact 관찰"];
+  Result -> Trace [label="상관관계만 기록"];
+}

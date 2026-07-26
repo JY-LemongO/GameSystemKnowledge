@@ -1,0 +1,27 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.28, ranksep=0.76, nodesep=0.58, outputorder=edgesfirst, splines=polyline, label="Effect 실행 상세 1 · 요청 의도와 대상 바인딩", labelloc=t, fontsize=16];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.16,0.10"];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=9, arrowsize=0.8, penwidth=1.3];
+
+  rankdir=TB;
+
+  Caller [label="<<product adapter boundary>>\nSkill / Status / Item caller\n대상과 무관한 실행 의도 생성", fillcolor="#f7f9fc", style="rounded,filled,dashed"];
+  Intent [label="ReferenceEffectSpecification\n+ EffectContext\n효과 규칙과 실행 문맥", fillcolor="#eaf0ff", color="#8292f7"];
+  SpatialAdapter [label="<<domain 밖 spatial adapter>>\neligibility와 정수 metric 계산", fillcolor="#f3eefc", color="#ab8fe0", style="rounded,filled,dashed"];
+  Snapshot [label="immutable CanonicalTargetSnapshot\n후보 순서와 metric 고정", fillcolor="#f3eefc", color="#ab8fe0"];
+  TargetResolver [label="ReferenceEffectTargetResolver\n구조 검증 + one-shot bind\n팀·거리·LOS 재검사 없음", fillcolor="#f3eefc", color="#ab8fe0"];
+  Resolved [label="ResolvedEffectOperation\n대상 · 안정 순서 · MaxTargets 고정", fillcolor="#eefbf6", color="#61b99a"];
+  NotApplicable [label="NotApplicable\n명시 대상 없음 / 빈 snapshot\n안정적인 사유 반환", fillcolor="#f0f3f9", color="#99a8bd"];
+  Rejected [shape=note, label="Rejected\n잘못된 specification · rule\n또는 snapshot 계약", fillcolor="#fff0f3", color="#e07b91"];
+
+  { rank=same; NotApplicable; Rejected; }
+
+  Caller -> Intent [label="실행 요청"];
+  Intent -> SpatialAdapter [label="CandidateSnapshot 모드", color="#7257A6"];
+  SpatialAdapter -> Snapshot [label="후보 불변화", color="#7257A6"];
+  Snapshot -> TargetResolver [label="snapshot 전달", color="#7257A6"];
+  Intent -> TargetResolver [label="Self / Explicit\nsnapshot 없음", color="#6366f1", constraint=false];
+  TargetResolver -> Resolved [label="대상 결합 성공", color="#3D8B6D"];
+  TargetResolver -> NotApplicable [label="대상 없음", color="#8292A8"];
+  TargetResolver -> Rejected [label="계약 위반", style=dashed, color="#dc2626", fontcolor="#dc2626"];
+}

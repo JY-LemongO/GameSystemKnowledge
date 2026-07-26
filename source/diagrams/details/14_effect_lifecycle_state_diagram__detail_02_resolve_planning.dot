@@ -1,0 +1,30 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.28, ranksep=0.76, nodesep=0.60, outputorder=edgesfirst, splines=polyline, label="Effect 생명주기 상세 2 · 대상 해석과 계획 합성", labelloc=t, fontsize=16];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.16,0.10"];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=9, arrowsize=0.8, penwidth=1.3];
+
+  rankdir=TB;
+
+  Validating [label="Validating\n구조 검증 통과", fillcolor="#f3eefc", color="#ab8fe0"];
+  ResolvingTargets [label="Resolving Targets\none-shot bind · total order · MaxTargets\neligibility 재검사 없음", fillcolor="#f3eefc", color="#ab8fe0"];
+  Resolved [label="Resolved\nResolvedEffectOperation", fillcolor="#eefbf6", color="#61b99a"];
+  Planning [label="Planning\n<<domain owner / product adapter boundary>>\nEffectOperationOutcome + optional CommitPlanFragment", fillcolor="#eefbf6", color="#61b99a", style="rounded,filled,dashed"];
+  NotApplicable [label="NotApplicable\n명시 대상 없음 / 빈 snapshot\n안정적인 사유", fillcolor="#f0f3f9", color="#99a8bd"];
+  Prepared [shape=diamond, label="Composition status?", fillcolor="#fff7e6", color="#e0ad4e"];
+  Ready [label="Ready\nCommitPlan 존재", fillcolor="#e9fbff", color="#54b7cf"];
+  NoCommit [label="NoChanges\n커밋 없음 · outbox 없음", fillcolor="#f0f3f9", color="#99a8bd"];
+  Failed [label="Failed\nsnapshot 계약 · outcome · 합성 거부", fillcolor="#fff0f3", color="#e07b91"];
+
+  { rank=same; Ready; NoCommit; Failed; }
+
+  Validating -> ResolvingTargets [label="대상 해석 시작"];
+  ResolvingTargets -> Resolved [label="대상 결합 성공", color="#3D8B6D"];
+  Resolved -> Planning [label="도메인 순수 계산"];
+  Planning -> Prepared [label="outcome 안정 순서 합성"];
+  ResolvingTargets -> NotApplicable [label="대상 없음", color="#8292A8"];
+  NotApplicable -> Prepared [label="outcome으로 합성", style=dashed, color="#8292A8"];
+  Prepared -> Ready [label="Ready", color="#3D8B6D"];
+  Prepared -> NoCommit [label="NoChanges", color="#8292A8"];
+  ResolvingTargets -> Failed [label="snapshot 계약 위반", style=dashed, color="#C45C6D"];
+  Prepared -> Failed [label="Rejected", style=dashed, color="#C45C6D"];
+}

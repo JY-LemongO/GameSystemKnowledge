@@ -483,6 +483,44 @@ with sync_playwright() as p:
     check(page.locator('[data-zoom-reset]').inner_text()=='100%','diagram:one-click-native-scale')
     page.keyboard.press('Escape')
 
+    story=context.new_page()
+    story.set_content(inline_page('modules/effect-system.html'),wait_until='load')
+    story.wait_for_timeout(120)
+    check(story.locator('.diagram-story').count()==3,'diagram-story:effect-series-present')
+    check(story.locator('.diagram-story .diagram-step').count()==9,'diagram-story:ordered-detail-steps')
+    check(
+        story.locator('.diagram-story figure.diagram').count()
+        == story.locator('.diagram-story .diagram-preview').count(),
+        'diagram-story:every-view-has-scroll-preview',
+    )
+    second_detail=story.locator(
+        '[data-diagram-series="11_effect_execution_sequence_diagram"] '
+        'figure[data-diagram-view="detail-02"] img.zoomable'
+    )
+    check(second_detail.count()==1,'diagram-story:second-detail-present')
+    second_detail.click()
+    check(story.locator('[data-diagram-modal]').evaluate('el => el.open'),'diagram-story:detail-modal-open')
+    check(
+        story.locator('#diagram-modal-title').inner_text()
+        == '02 · Outcome, fragment & composition',
+        'diagram-story:detail-modal-title',
+    )
+    check(
+        story.locator('[data-open-original]').get_attribute('href').endswith(
+            '11_effect_execution_sequence_diagram__detail_02_resolve_compose.svg'
+        ),
+        'diagram-story:detail-original-link',
+    )
+    story.keyboard.press('Escape')
+    keyboard_detail=story.locator(
+        '[data-diagram-series="10_effect_core_class_diagram"] '
+        'figure[data-diagram-view="detail-03"] img.zoomable'
+    )
+    keyboard_detail.press('Enter')
+    check(story.locator('[data-diagram-modal]').evaluate('el => el.open'),'diagram-story:keyboard-open')
+    story.keyboard.press('Escape')
+    story.close()
+
     gallery=context.new_page()
     gallery.set_content(inline_page('modules/diagram-gallery.html'),wait_until='load')
     gallery.wait_for_timeout(120)

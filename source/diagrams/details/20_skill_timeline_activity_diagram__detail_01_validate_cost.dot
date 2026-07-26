@@ -1,0 +1,26 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.25, ranksep=0.78, nodesep=0.72, newrank=true, splines=polyline, label="Skill Timeline 상세 1/3 · 요청 검증과 비용 경계", labelloc=t, fontsize=18];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.18,0.11", width=2.8, height=0.56];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=10, arrowsize=0.8, penwidth=1.3];
+  rankdir=TB;
+
+  Request [label="<<public contract · 실행 C#>>\nSkillRequest\n요청 식별자 · 시전자 · 스킬 · 대상 · tick", fillcolor="#eefbf6", color="#61b99a"];
+  Validator [label="<<public interface>>\nISkillRequestValidator.Validate\n대상 → cooldown → resource 순서로 판정", fillcolor="#f3eefc", color="#ab8fe0"];
+  Decision [shape=diamond, label="<<public contract · 실행 C#>>\nSkillDecision.CanExecute?", fillcolor="#f3eefc", color="#ab8fe0"];
+  Rejected [label="<<public contract · 실행 C#>>\nSkillResult(FailureReason)\n상태 변경과 이벤트 없이 거부", fillcolor="#fff0f3", color="#e07b91"];
+  PayTiming [shape=diamond, style="filled,dashed", label="<<product-only CostPolicy>>\n비용 확정 시점?", fillcolor="#fff7e6", color="#e0ad4e"];
+  Reserved [style="rounded,dashed,filled", label="<<internal project model · product-only>>\nSkillReleasePlan에 비용 예약\nrelease 성공 전에는 최종 차감하지 않음", fillcolor="#fff7e6", color="#e0ad4e"];
+  Prepay [style="rounded,dashed,filled", label="<<product-only 선택 정책>>\n선결제는 별도 RuntimeCommitter commit\n중단 보상 규칙을 함께 정의", fillcolor="#fff0f3", color="#e07b91"];
+  Execution [style="rounded,dashed,filled", label="<<internal project model · product-only>>\nSkillExecution 시작\n현재 실행 C#은 승인 뒤 원자 plan을 직접 준비", fillcolor="#e9fbff", color="#54b7cf"];
+
+  { rank=same; Rejected; PayTiming; }
+  { rank=same; Reserved; Prepay; }
+
+  Request -> Validator -> Decision;
+  Decision -> Rejected [label="거부 · 단일 실패 사유", color="#c35f76", fontcolor="#9d4358"];
+  Decision -> PayTiming [label="승인", color="#4f8b74", fontcolor="#3f735f"];
+  PayTiming -> Reserved [label="release 시 확정", style=dashed];
+  PayTiming -> Prepay [label="선결제", style=dashed];
+  Reserved -> Execution [label="예약을 들고 진행", style=dashed];
+  Prepay -> Execution [label="commit 성공 뒤 진행", style=dashed];
+}

@@ -62,7 +62,8 @@ PR 병합으로 `main`의 merge commit SHA가 달라지는 것은 정상이며, 
 - C# 공개 계약과 실행 검증: `source/csharp/`
 - 브라우저 Runtime Contract Lab: `source/runtime/`
 - 계약 스키마: `source/contracts/`
-- 다이어그램 원본: `source/diagrams/`
+- 논리 다이어그램 개요 원본: `source/diagrams/*.dot`
+- 단계별 상세 원본: `source/diagrams/details/*.dot`
 - 다이어그램 공통 테마와 생성 profile: `source/tools/render_diagrams.py`
 - 공개 다이어그램 출력: `assets/diagrams/`
 - 공개 페이지 목록과 검색 구성: `source/site-map.json`
@@ -72,14 +73,14 @@ PR 병합으로 `main`의 merge commit SHA가 달라지는 것은 정상이며, 
 
 다이어그램 출력만 직접 고치지 않는다. 내용·관계·개별 배치는 원본 DOT에서, 공통 팔레트·선·타이포그래피는 render profile에서 수정한 뒤 SVG와 PNG를 다시 생성한다.
 
-Graphviz와 `Noto Sans KR` 폰트를 설치한 개발 환경에서 다음 명령으로 34개 출력을 함께 갱신한다. Windows 기본 Graphviz 설치 경로는 자동 탐색하며, 별도 경로는 `GRAPHVIZ_DOT` 환경 변수로 지정한다.
+Graphviz와 `Noto Sans KR` 폰트를 설치한 개발 환경에서 다음 명령으로 34개 논리 다이어그램 개요와 단계별 상세 출력을 함께 갱신한다. Windows 기본 Graphviz 설치 경로는 자동 탐색하며, 별도 경로는 `GRAPHVIZ_DOT` 환경 변수로 지정한다. 상세 파일은 `{logical_stem}__detail_{두 자리 순번}_{snake_case 설명}.dot` 규칙을 사용하고, 렌더러가 `assets/diagrams/details/`에 같은 상대 경로의 SVG·PNG를 만든다.
 
 ```bash
 npm run diagrams
 npm run diagrams:check
 ```
 
-새 다이어그램은 DOT·SVG·PNG와 Gallery 카드를 한 세트로 추가한다. 라벨이 있는 엣지에는 `splines=ortho`를 사용하지 않고, 동일한 두 노드 사이의 왕복선은 포트·색·스타일 또는 중간 라벨 노드로 방향을 구분한다.
+새 논리 다이어그램은 DOT·SVG·PNG와 Gallery 카드를 한 세트로 추가한다. 기존 다이어그램을 여러 장으로 설명할 때는 Gallery 카드를 늘리지 않고, 원본을 overview URL로 유지한 채 `details/`의 ordered view와 학습 페이지의 `diagram-story`를 함께 추가한다. 라벨이 있는 엣지에는 `splines=ortho`를 사용하지 않고, 동일한 두 노드 사이의 왕복선은 포트·색·스타일 또는 중간 라벨 노드로 방향을 구분한다.
 
 ## 현재 인수인계 기준점
 

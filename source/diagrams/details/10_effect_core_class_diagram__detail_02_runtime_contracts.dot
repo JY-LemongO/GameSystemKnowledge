@@ -1,0 +1,28 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.28, ranksep=0.82, nodesep=0.62, outputorder=edgesfirst, splines=polyline, label="Effect 핵심 클래스 상세 2 · 공개 런타임 계약", labelloc=t, fontsize=16];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.16,0.10"];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=9, arrowsize=0.8, penwidth=1.3];
+
+  rankdir=TB;
+
+  EffectOperation [label="EffectOperation\n단일 효과 실행 단위", fillcolor="#eefbf6", color="#61b99a"];
+  EffectBundle [label="EffectBundle\nOperation 1..* + ReactionRule\nPolicy: CommitThenReact", fillcolor="#fff7e6", color="#e0ad4e"];
+  EffectContext [label="EffectContext\nCasterId · InitialTargetId\nSourceRef · RandomSeed", fillcolor="#eaf0ff", color="#8292f7"];
+  IEffectExecutor [label="<<public interface>>\nIEffectExecutor\nOperation 또는 Bundle 실행", fillcolor="#eefbf6", color="#61b99a"];
+  IEffectPlanner [label="<<public interface>>\nIEffectPlanner\nPrepare(bundle, context)", fillcolor="#e9fbff", color="#54b7cf"];
+  EffectBundlePlan [label="<<public contract>>\nEffectBundlePlan\nPrimaryOperations + Reactions", fillcolor="#e9fbff", color="#54b7cf"];
+  EffectResult [label="EffectResult\nEffectOperationResult\nEffectBundleResult", fillcolor="#f0f3f9", color="#99a8bd"];
+
+  { rank=same; EffectOperation; EffectBundle; EffectContext; }
+  { rank=same; IEffectExecutor; IEffectPlanner; }
+  { rank=same; EffectResult; EffectBundlePlan; }
+
+  EffectBundle -> EffectOperation [label="실행 단위 1..*", dir=both, arrowtail=diamond, arrowhead=none, color="#8A6D3B"];
+  EffectOperation -> IEffectExecutor [label="단일 실행 입력", color="#3D8B6D"];
+  EffectBundle -> IEffectExecutor [label="묶음 실행 입력", color="#3D8B6D"];
+  EffectContext -> IEffectExecutor [label="실행 문맥", style=dashed, color="#8292A8"];
+  EffectBundle -> IEffectPlanner [label="계획 입력", color="#397B8C"];
+  EffectContext -> IEffectPlanner [label="계획 문맥", style=dashed, color="#8292A8"];
+  IEffectExecutor -> EffectResult [label="실행 결과", color="#8292A8"];
+  IEffectPlanner -> EffectBundlePlan [label="결정론적 계획", color="#397B8C"];
+}

@@ -1,0 +1,30 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.28, ranksep=0.76, nodesep=0.60, outputorder=edgesfirst, splines=polyline, label="Effect 생명주기 상세 3 · 커밋, 반응, 관찰", labelloc=t, fontsize=16];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.16,0.10"];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=9, arrowsize=0.8, penwidth=1.3];
+
+  rankdir=TB;
+
+  Ready [label="Ready\nCommitPlan 존재", fillcolor="#e9fbff", color="#54b7cf"];
+  Committing [label="Atomic Commit\nRuntimeCommitter\n상태 + outbox", fillcolor="#fff7e6", color="#e0ad4e"];
+  Committed [label="Committed\nEffectResult + committed facts", fillcolor="#eefbf6", color="#61b99a"];
+  ReactionQueued [label="Reaction Queued\n상한이 있는 새 command", fillcolor="#f3eefc", color="#ab8fe0"];
+  Requested [label="Requested\n후속 command를 새 요청으로 처리", fillcolor="#eaf0ff", color="#8292f7"];
+  WaitingTrigger [label="<<product extension>> Waiting Trigger\ncommitted fact predicate 대기", fillcolor="#f0f3f9", color="#99a8bd", style="rounded,filled,dashed"];
+  NoCommit [label="NoChanges\n커밋 없이 관찰", fillcolor="#f0f3f9", color="#99a8bd"];
+  Failed [label="Failed\nversion / invariant 거부", fillcolor="#fff0f3", color="#e07b91"];
+  Logged [label="Observed\nDebugTrace / UI / log", fillcolor="#f3eefc", color="#ab8fe0"];
+
+  { rank=same; Committed; WaitingTrigger; }
+  { rank=same; NoCommit; Failed; }
+
+  Ready -> Committing [label="CommitPlan만 커밋"];
+  Committing -> Committed [label="원자적 성공", color="#3D8B6D"];
+  Committed -> ReactionQueued [label="commit_then_react", color="#7257A6"];
+  ReactionQueued -> Requested [label="후속 command dequeue", color="#7257A6"];
+  WaitingTrigger -> ReactionQueued [label="committed fact 일치", style=dashed, color="#7257A6"];
+  Committing -> Failed [label="version / invariant 실패", style=dashed, color="#C45C6D"];
+  Committed -> Logged [label="커밋 관찰", style=dotted, color="#8292A8"];
+  NoCommit -> Logged [label="no-op 관찰", style=dotted, color="#8292A8"];
+  Failed -> Logged [label="실패 관찰", style=dotted, color="#8292A8"];
+}

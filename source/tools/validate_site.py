@@ -630,9 +630,42 @@ dots = sorted((ROOT/'source/diagrams').glob('*.dot'))
 svgs = sorted((ROOT/'assets/diagrams').glob('*.svg'))
 pngs = sorted((ROOT/'assets/diagrams').glob('*.png'))
 if (len(dots),len(svgs),len(pngs)) != (34,34,34): error(f'diagram parity expected 34/34/34, got {len(dots)}/{len(svgs)}/{len(pngs)}')
-for dot in dots:
-    if not (ROOT/'assets/diagrams'/f'{dot.stem}.svg').exists(): error(f'missing SVG for {dot.name}')
-    if not (ROOT/'assets/diagrams'/f'{dot.stem}.png').exists(): error(f'missing PNG for {dot.name}')
+detail_dots = sorted((ROOT/'source/diagrams/details').glob('*.dot'))
+detail_svgs = sorted((ROOT/'assets/diagrams/details').glob('*.svg'))
+detail_pngs = sorted((ROOT/'assets/diagrams/details').glob('*.png'))
+if len({len(detail_dots),len(detail_svgs),len(detail_pngs)}) != 1:
+    error(
+        'detail diagram parity mismatch: '
+        f'{len(detail_dots)} DOT / {len(detail_svgs)} SVG / {len(detail_pngs)} PNG'
+    )
+detail_name_pattern = re.compile(
+    r'^(?P<logical>.+)__detail_(?P<order>\d{2})_(?P<slug>[a-z0-9]+(?:_[a-z0-9]+)*)$'
+)
+canonical_stems = {dot.stem for dot in dots}
+detail_groups = {}
+for dot in detail_dots:
+    match = detail_name_pattern.fullmatch(dot.stem)
+    if not match:
+        error(f'{dot.relative_to(ROOT)} has an invalid detail diagram filename')
+        continue
+    logical = match.group('logical')
+    order = int(match.group('order'))
+    if logical not in canonical_stems:
+        error(f'{dot.relative_to(ROOT)} has no canonical overview')
+    detail_groups.setdefault(logical, []).append((order, dot))
+for logical, entries in detail_groups.items():
+    orders = sorted(order for order, _ in entries)
+    if orders != list(range(1, len(entries) + 1)):
+        error(f'{logical} detail diagram orders must be contiguous from 01: {orders}')
+
+diagram_dots = dots + detail_dots
+diagram_svgs = svgs + detail_svgs
+for dot in diagram_dots:
+    relative = dot.relative_to(ROOT/'source/diagrams')
+    svg_asset = ROOT/'assets/diagrams'/relative.with_suffix('.svg')
+    png_asset = ROOT/'assets/diagrams'/relative.with_suffix('.png')
+    if not svg_asset.exists(): error(f'missing SVG for {dot.relative_to(ROOT)}')
+    if not png_asset.exists(): error(f'missing PNG for {dot.relative_to(ROOT)}')
     diagram_text = dot.read_text(encoding='utf-8')
     if 'Noto Sans CJK KR' in diagram_text or 'Noto Sans KR' not in diagram_text:
         error(f'{dot.relative_to(ROOT)} must use the reproducible Noto Sans KR font family')
@@ -653,7 +686,7 @@ for dot in dots:
     duplicates = [f'{tail}->{head}' for (tail, head), count in edge_counts.items() if count > 1]
     if duplicates:
         error(f'{dot.relative_to(ROOT)} repeats directed edges: {duplicates}')
-for diagram_path in dots + svgs:
+for diagram_path in diagram_dots + diagram_svgs:
     diagram_text = diagram_path.read_text(encoding='utf-8')
     if diagram_path.suffix == '.svg' and 'font-family="Noto Sans KR"' not in diagram_text:
         error(f'{diagram_path.relative_to(ROOT)} is stale or was rendered with the wrong font family')
@@ -782,6 +815,98 @@ for relative_path, required_tokens in diagram_contract_requirements.items():
     if rendered_missing:
         error(f'{rendered_svg.relative_to(ROOT)} is stale or missing labels: {rendered_missing}')
 
+# Diagram stories keep one logical overview while exposing ordered, independently zoomable details.
+series_by_logical = {}
+referenced_detail_stems = set()
+for page_path, soup in soups.items():
+    for series in soup.select('section.diagram-story[data-diagram-series]'):
+        logical = series.get('data-diagram-series', '').strip()
+        if logical in series_by_logical:
+            error(f'diagram story {logical} is duplicated in {page_path.relative_to(ROOT)}')
+            continue
+        series_by_logical[logical] = (page_path, series)
+        if logical not in detail_groups:
+            error(f'{page_path.relative_to(ROOT)} references unknown diagram story {logical}')
+            continue
+        figures = series.select('figure.diagram[data-diagram-view]')
+        detail_figures = [
+            figure for figure in figures
+            if figure.get('data-diagram-view', '').startswith('detail-')
+        ]
+        expected_entries = sorted(detail_groups[logical])
+        if len(detail_figures) != len(expected_entries):
+            error(
+                f'{page_path.relative_to(ROOT)} story {logical} exposes '
+                f'{len(detail_figures)} details, expected {len(expected_entries)}'
+            )
+        for index, ((order, detail_dot), figure) in enumerate(
+            zip(expected_entries, detail_figures), start=1
+        ):
+            expected_view = f'detail-{order:02d}'
+            if figure.get('data-diagram-view') != expected_view:
+                error(
+                    f'{page_path.relative_to(ROOT)} story {logical} view {index} '
+                    f'must be {expected_view}'
+                )
+            labelled_by = figure.get('aria-labelledby')
+            if not labelled_by or not soup.find(id=labelled_by):
+                error(f'{page_path.relative_to(ROOT)} story {logical} view {index} has no valid title')
+            image = figure.select_one('img.zoomable[src]')
+            expected_svg = (
+                ROOT/'assets/diagrams'/
+                detail_dot.relative_to(ROOT/'source/diagrams').with_suffix('.svg')
+            ).resolve()
+            expected_png = expected_svg.with_suffix('.png')
+            if not image or not image.get('alt', '').strip():
+                error(f'{page_path.relative_to(ROOT)} story {logical} view {index} has no descriptive image')
+                continue
+            image_target = (page_path.parent/unquote(image['src'].split('?', 1)[0])).resolve()
+            if image_target != expected_svg:
+                error(
+                    f'{page_path.relative_to(ROOT)} story {logical} view {index} '
+                    f'uses {image_target.name}, expected {expected_svg.name}'
+                )
+            described_by = image.get('aria-describedby')
+            description = soup.find(id=described_by) if described_by else None
+            if not description or 'cap' not in description.get('class', []):
+                error(
+                    f'{page_path.relative_to(ROOT)} story {logical} view {index} '
+                    'has no valid figcaption description'
+                )
+            linked_targets = {
+                (page_path.parent/unquote(link['href'].split('?', 1)[0])).resolve()
+                for link in figure.select('.da a[href]')
+            }
+            if expected_svg not in linked_targets or expected_png not in linked_targets:
+                error(
+                    f'{page_path.relative_to(ROOT)} story {logical} view {index} '
+                    'must link its matching SVG and PNG'
+                )
+            referenced_detail_stems.add(detail_dot.stem)
+        overview = series.select_one('figure.diagram[data-diagram-view="overview"]')
+        if not overview:
+            error(f'{page_path.relative_to(ROOT)} story {logical} has no overview')
+        else:
+            overview_image = overview.select_one('img.zoomable[src]')
+            overview_target = (
+                (page_path.parent/unquote(overview_image['src'].split('?', 1)[0])).resolve()
+                if overview_image else None
+            )
+            expected_overview = (ROOT/'assets/diagrams'/f'{logical}.svg').resolve()
+            if overview_target != expected_overview:
+                error(f'{page_path.relative_to(ROOT)} story {logical} has the wrong overview')
+
+missing_series = sorted(set(detail_groups) - set(series_by_logical))
+if missing_series:
+    error(f'detail diagrams have no learning-page story: {missing_series}')
+expected_detail_stems = {dot.stem for dot in detail_dots}
+if referenced_detail_stems != expected_detail_stems:
+    error(
+        'diagram stories do not reference the complete detail set: '
+        f'missing={sorted(expected_detail_stems-referenced_detail_stems)}, '
+        f'extra={sorted(referenced_detail_stems-expected_detail_stems)}'
+    )
+
 gallery = soups.get(ROOT/'modules/diagram-gallery.html')
 if gallery:
     gallery_path = ROOT/'modules/diagram-gallery.html'
@@ -795,6 +920,7 @@ if gallery:
         error('diagram gallery must default every unclassified card to conceptual-mixed')
     gallery_cards = gallery_section.select('.thumb') if gallery_section else []
     gallery_stems = []
+    gallery_story_ids = set()
     for index, card in enumerate(gallery_cards, start=1):
         effective_evidence_scope = card.get('data-evidence-scope') or default_evidence_scope
         if effective_evidence_scope not in allowed_evidence_scopes:
@@ -813,7 +939,31 @@ if gallery:
             error(f'diagram gallery card {index} has no SVG reference')
             continue
         if image:
-            gallery_stems.append(Path(unquote(image['src'].split('?', 1)[0])).stem)
+            card_stem = Path(unquote(image['src'].split('?', 1)[0])).stem
+            gallery_stems.append(card_stem)
+            if card_stem in detail_groups:
+                gallery_story_ids.add(card_stem)
+                if card.get('data-diagram-id') != card_stem:
+                    error(f'diagram gallery card {index} has no matching data-diagram-id')
+                expected_view_count = len(detail_groups[card_stem]) + 1
+                if card.get('data-view-count') != str(expected_view_count):
+                    error(
+                        f'diagram gallery card {index} view count must be '
+                        f'{expected_view_count}'
+                    )
+                story_link = card.select_one('a.diagram-gallery-story-link[href*="#"]')
+                if not story_link:
+                    error(f'diagram gallery card {index} has no story link')
+                else:
+                    raw_story_path, _, fragment = story_link['href'].partition('#')
+                    story_page = (gallery_path.parent/unquote(raw_story_path)).resolve()
+                    story_soup = soups.get(story_page)
+                    story_target = story_soup.find(id=fragment) if story_soup and fragment else None
+                    if (
+                        not story_target
+                        or story_target.get('data-diagram-series') != card_stem
+                    ):
+                        error(f'diagram gallery card {index} has an invalid story link')
         for raw in references:
             value = unquote(raw.split('?', 1)[0])
             target = (gallery_path.parent/value).resolve()
@@ -834,6 +984,12 @@ if gallery:
     extra_stems = sorted(actual_stems - expected_stems)
     if missing_stems: error(f'diagram gallery omits assets: {missing_stems}')
     if extra_stems: error(f'diagram gallery references unknown assets: {extra_stems}')
+    if gallery_story_ids != set(detail_groups):
+        error(
+            'diagram gallery story cards differ from detail diagrams: '
+            f'missing={sorted(set(detail_groups)-gallery_story_ids)}, '
+            f'extra={sorted(gallery_story_ids-set(detail_groups))}'
+        )
 
 # Runtime artifacts.
 kernel_source = ROOT/'source/runtime/runtime-kernel.js'
@@ -1633,7 +1789,10 @@ if runtime_page and not any(x.get('file')==runtime_page['file'] and x.get('type'
 report = {
   'status': 'pass' if not errors else 'fail',
   'htmlPages': len(html_paths), 'searchEntries': len(search),
-  'diagrams': {'dot':len(dots),'svg':len(svgs),'png':len(pngs)},
+  'diagrams': {
+      'logical':len(dots), 'dot':len(dots),'svg':len(svgs),'png':len(pngs),
+      'detailDot':len(detail_dots),'detailSvg':len(detail_svgs),'detailPng':len(detail_pngs),
+  },
   'contracts':len(contracts),'adrs':len(adrs),
   'errors':errors,'warnings':warnings
 }

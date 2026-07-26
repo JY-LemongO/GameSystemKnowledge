@@ -1,0 +1,54 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.25, ranksep=0.68, nodesep=0.50, newrank=true, compound=true, splines=polyline, label="Core Runtime 상세 02 · 소비 시스템과 커밋 계획", labelloc="t", labeljust="l", fontsize=20, fontcolor="#182033"];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.14,0.09", width=2.05, height=0.55];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", arrowsize=0.8, penwidth=1.3];
+  rankdir=LR;
+
+  subgraph cluster_consumers {
+    label="소비 시스템";
+    style="rounded,dashed";
+    color="#dfe5ee";
+    fontcolor="#607086";
+    fontsize=16;
+
+    StatEquipment [label="Stat · Equipment\n계산 · Modifier 소스\n커밋 계획 없음", fillcolor="#eaf0ff", color="#8292f7"];
+    Effect [label="Effect System\n효과 실행", fillcolor="#fff0f3", color="#e07b91"];
+    Skill [label="Skill / Action\n행동 실행", fillcolor="#fff7e6", color="#e0ad4e"];
+    Status [label="Status\n지속 상태", fillcolor="#f3eefc", color="#ab8fe0"];
+    Combat [label="Combat\n피해 해석", fillcolor="#eefbf6", color="#61b99a"];
+  }
+
+  subgraph cluster_plans {
+    label="커밋 계획 레인";
+    style="rounded,dashed";
+    color="#cfe8de";
+    fontcolor="#4f7a68";
+    fontsize=16;
+
+    ContextLane [label="컨텍스트 정체성\n행위자 · 대상 · 상관관계", fillcolor="#eefbf6", color="#61b99a"];
+    EffectPlan [label="Effect 커밋 계획\n변경 · 예정 이벤트", fillcolor="#eefbf6", color="#61b99a"];
+    SkillPlan [label="Skill 커밋 계획\n비용 · 쿨다운", fillcolor="#eefbf6", color="#61b99a"];
+    StatusPlan [label="Status 커밋 계획\n지속시간 · 틱", fillcolor="#eefbf6", color="#61b99a"];
+    CombatPlan [label="Combat 커밋 계획\nDamageResult", fillcolor="#eefbf6", color="#61b99a"];
+  }
+
+  RuntimeCommitter [label="RuntimeCommitter\n버전 · 불변식 검증\n상태와 outbox 원자 커밋", fillcolor="#eefbf6", color="#61b99a", penwidth=1.8];
+
+  { rank=same; StatEquipment; Effect; Skill; Status; Combat; }
+  { rank=same; ContextLane; EffectPlan; SkillPlan; StatusPlan; CombatPlan; }
+
+  StatEquipment -> Effect -> Skill -> Status -> Combat [style=invis, weight=50];
+  ContextLane -> EffectPlan -> SkillPlan -> StatusPlan -> CombatPlan [style=invis, weight=50];
+  StatEquipment -> ContextLane [style=invis, weight=20];
+
+  Effect -> EffectPlan [label="변경안 작성"];
+  Skill -> SkillPlan [label="변경안 작성"];
+  Status -> StatusPlan [label="변경안 작성"];
+  Combat -> CombatPlan [label="결과 작성"];
+
+  ContextLane -> RuntimeCommitter [label="정체성 고정"];
+  EffectPlan -> RuntimeCommitter;
+  SkillPlan -> RuntimeCommitter;
+  StatusPlan -> RuntimeCommitter;
+  CombatPlan -> RuntimeCommitter;
+}

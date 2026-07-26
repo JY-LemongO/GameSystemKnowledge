@@ -1,0 +1,48 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.25, ranksep=0.72, nodesep=0.54, newrank=true, compound=true, splines=polyline, label="Core Runtime 상세 04 · 관찰 로그와 디버그 추적", labelloc="t", labeljust="l", fontsize=20, fontcolor="#182033"];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.14,0.09", width=2.05, height=0.55];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", arrowsize=0.8, penwidth=1.3];
+  rankdir=LR;
+
+  subgraph cluster_systems {
+    label="실행 시스템";
+    style="rounded,dashed";
+    color="#dfe5ee";
+    fontcolor="#607086";
+    fontsize=16;
+
+    Stat [label="Stat System\n계산 수행", fillcolor="#eaf0ff", color="#8292f7"];
+    Effect [label="Effect System\n효과 실행", fillcolor="#fff0f3", color="#e07b91"];
+    Combat [label="Combat System\n피해 해석", fillcolor="#eefbf6", color="#61b99a"];
+  }
+
+  subgraph cluster_observations {
+    label="관찰 레인";
+    style="rounded,dashed";
+    color="#d8dee9";
+    fontcolor="#607086";
+    fontsize=16;
+
+    StatObservation [label="Stat breakdown\n스탯 계산 근거", fillcolor="#f7f9fc", color="#99a8bd"];
+    EffectObservation [label="Effect execution log\n효과 실행 기록", fillcolor="#f7f9fc", color="#99a8bd"];
+    CombatObservation [label="Combat damage log\n피해 계산 기록", fillcolor="#f7f9fc", color="#99a8bd"];
+    EventBus [label="EventBus\n커밋된 사실", fillcolor="#fff0f3", color="#e07b91"];
+  }
+
+  DebugTrace [label="DebugTrace\ncorrelationId · 계산 근거\n통합 실행 추적", fillcolor="#f0f3f9", color="#99a8bd", penwidth=1.8];
+
+  { rank=same; Stat; Effect; Combat; }
+  { rank=same; StatObservation; EffectObservation; CombatObservation; EventBus; }
+
+  Stat -> Effect -> Combat [style=invis, weight=50];
+  StatObservation -> EffectObservation -> CombatObservation -> EventBus [style=invis, weight=50];
+
+  Stat -> StatObservation [label="계산 결과 관찰"];
+  Effect -> EffectObservation [label="실행 결과 관찰"];
+  Combat -> CombatObservation [label="피해 결과 관찰"];
+
+  StatObservation -> DebugTrace;
+  EffectObservation -> DebugTrace;
+  CombatObservation -> DebugTrace;
+  EventBus -> DebugTrace [label="커밋 사실 관찰"];
+}

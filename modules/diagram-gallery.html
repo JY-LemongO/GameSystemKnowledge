@@ -431,7 +431,7 @@
         </a>
 </div>
 </div>
-<div class="thumb" data-item="Effect 핵심 클래스 Effect EffectBundle IEffectExecutor IEffectOperationExecutor Context TargetSelector Result 관계">
+<div class="thumb" data-diagram-id="10_effect_core_class_diagram" data-item="Effect 핵심 클래스 Effect 정의 정규화 public runtime contract strategy dispatch EffectBundle IEffectExecutor IEffectOperationExecutor Context TargetSelector Result 관계" data-view-count="4">
 <img alt="Effect 핵심 클래스" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/10_effect_core_class_diagram.svg"/>
 <h3 id="Effect-핵심-클래스">
         Effect 핵심 클래스
@@ -440,9 +440,11 @@
 <span class="tag">
          Effect
         </span>
+<span class="tag">Overview + 3 details</span>
         실제 C# EffectBundle·공개 port와 현재 미구현인 개념적 pipeline·내부 operation 전략, Context, Result 관계
        </p>
 <div class="da">
+<a class="small diagram-gallery-story-link" href="effect-system.html#effect-core-diagram-story">단계별 보기</a>
 <a class="small" href="../assets/diagrams/10_effect_core_class_diagram.svg" target="_blank">
          SVG
         </a>
@@ -451,7 +453,7 @@
         </a>
 </div>
 </div>
-<div class="thumb" data-item="Effect 실행 흐름 Effect Effect 요청부터 결과와 이벤트 발행까지 activity flow">
+<div class="thumb" data-diagram-id="11_effect_execution_sequence_diagram" data-item="Effect 실행 흐름 Effect target bind pure resolve deterministic composition atomic commit reaction activity flow" data-view-count="4">
 <img alt="Effect 실행 흐름도" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/11_effect_execution_sequence_diagram.svg"/>
 <h3 id="Effect-실행-흐름">
         Effect 실행 흐름
@@ -460,11 +462,16 @@
 <span class="tag">
          Effect
         </span>
+<span class="tag">Overview + 3 details</span>
         Effect 요청부터 결과와 이벤트 발행까지
        </p>
 <div class="da">
+<a class="small diagram-gallery-story-link" href="effect-system.html#effect-execution-diagram-story">단계별 보기</a>
 <a class="small" href="../assets/diagrams/11_effect_execution_sequence_diagram.svg" target="_blank">
          SVG
+        </a>
+<a class="small" href="../assets/diagrams/11_effect_execution_sequence_diagram.png" target="_blank">
+         PNG
         </a>
 </div>
 </div>
@@ -508,7 +515,7 @@
         </a>
 </div>
 </div>
-<div class="thumb" data-item="Effect 생명주기 Defined, Registered, Requested, Validating, Resolving Targets, Planning, Prepared, Committing, Committed, Reaction Queued, Scheduled, Failed 상태 lifecycle">
+<div class="thumb" data-diagram-id="14_effect_lifecycle_state_diagram" data-item="Effect 생명주기 registration scheduling validation one-shot target binding composition commit reaction observation 상태 lifecycle" data-view-count="4">
 <img alt="Effect 생명주기" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/14_effect_lifecycle_state_diagram.svg"/>
 <h3 id="Effect-생명주기">
         Effect 생명주기
@@ -517,9 +524,11 @@
 <span class="tag">
          Effect
         </span>
+<span class="tag">Overview + 3 details</span>
         정의·요청·검증·대상 해석·계획·원자적 commit·후속 reaction까지의 상태
        </p>
 <div class="da">
+<a class="small diagram-gallery-story-link" href="effect-system.html#effect-lifecycle-diagram-story">단계별 보기</a>
 <a class="small" href="../assets/diagrams/14_effect_lifecycle_state_diagram.svg" target="_blank">
          SVG
         </a>
@@ -548,7 +557,7 @@
         </a>
 </div>
 </div>
-<div class="thumb" data-item="Core Runtime 컴포넌트 Core Entity, Source, Tag, Event, Time, Random의 공통 계약">
+<div class="thumb" data-diagram-id="16_core_runtime_component_diagram" data-item="Core Runtime 컴포넌트 identity context deterministic inputs commit plan atomic commit outbox reaction observation DebugTrace" data-view-count="5">
 <img alt="Core Runtime 컴포넌트" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/16_core_runtime_component_diagram.svg"/>
 <h3 id="Core-Runtime-컴포넌트">
         Core Runtime 컴포넌트
@@ -557,9 +566,11 @@
 <span class="tag">
          Core
         </span>
+<span class="tag">Overview + 4 details</span>
         Entity, Source, Tag, Event, Time, Random의 공통 계약
        </p>
 <div class="da">
+<a class="small diagram-gallery-story-link" href="core-runtime.html#core-runtime-diagram-story">단계별 보기</a>
 <a class="small" href="../assets/diagrams/16_core_runtime_component_diagram.svg" target="_blank">
          SVG
         </a>
@@ -625,7 +636,7 @@
         </a>
 </div>
 </div>
-<div class="thumb" data-item="Action Timeline Skill 비용 예약, 선딜, release marker, 후딜, 쿨다운 흐름">
+<div class="thumb" data-diagram-id="20_skill_timeline_activity_diagram" data-item="Action Timeline Skill admission cost timing windup interrupt release preparation atomic commit reaction recovery" data-view-count="4">
 <img alt="Action Timeline" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/20_skill_timeline_activity_diagram.svg"/>
 <h3 id="Action-Timeline">
         Action Timeline
@@ -634,9 +645,11 @@
 <span class="tag">
          Skill
         </span>
+<span class="tag">Overview + 3 details</span>
         비용 예약, 선딜, release marker, 후딜, 쿨다운 흐름
        </p>
 <div class="da">
+<a class="small diagram-gallery-story-link" href="skill-action-system.html#skill-timeline-diagram-story">단계별 보기</a>
 <a class="small" href="../assets/diagrams/20_skill_timeline_activity_diagram.svg" target="_blank">
          SVG
         </a>
@@ -645,7 +658,7 @@
         </a>
 </div>
 </div>
-<div class="thumb" data-item="Skill 데이터 모델 Skill SkillDefinition과 RuntimeState, SkillMutation 분리">
+<div class="thumb" data-diagram-id="21_skill_data_model_diagram" data-item="Skill 데이터 모델 definition data admission runtime execution release plan atomic commit receipt evidence trace" data-view-count="4">
 <img alt="Skill 데이터 모델" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/21_skill_data_model_diagram.svg"/>
 <h3 id="Skill-데이터-모델">
         Skill 데이터 모델
@@ -654,11 +667,16 @@
 <span class="tag">
          Skill
         </span>
+<span class="tag">Overview + 3 details</span>
         SkillDefinition과 RuntimeState, SkillMutation 분리
        </p>
 <div class="da">
+<a class="small diagram-gallery-story-link" href="skill-action-system.html#skill-data-diagram-story">단계별 보기</a>
 <a class="small" href="../assets/diagrams/21_skill_data_model_diagram.svg" target="_blank">
          SVG
+        </a>
+<a class="small" href="../assets/diagrams/21_skill_data_model_diagram.png" target="_blank">
+         PNG
         </a>
 </div>
 </div>

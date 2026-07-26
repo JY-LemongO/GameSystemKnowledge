@@ -1,0 +1,56 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.25, ranksep=0.68, nodesep=0.50, newrank=true, compound=true, splines=polyline, label="Core Runtime 상세 01 · 정체성과 결정적 입력", labelloc="t", labeljust="l", fontsize=20, fontcolor="#182033"];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.14,0.09", width=2.05, height=0.55];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", arrowsize=0.8, penwidth=1.3];
+  rankdir=LR;
+
+  subgraph cluster_identity {
+    label="정체성 · 컨텍스트 조립";
+    style="rounded,dashed";
+    color="#dfe5ee";
+    fontcolor="#607086";
+    fontsize=16;
+
+    EntityRegistry [label="EntityRegistry\n엔티티 식별자 · 참조", fillcolor="#eaf0ff", color="#8292f7"];
+    TagService [label="TagService\n컨텍스트 태그 조회", fillcolor="#f3eefc", color="#ab8fe0"];
+    SourceTracker [label="SourceTracker\n정의 · 인스턴스 출처", fillcolor="#fff7e6", color="#e0ad4e"];
+    ContextFactory [label="GameContextFactory\n행위자 · 대상 · 시드 · 시간", fillcolor="#eefbf6", color="#61b99a"];
+  }
+
+  subgraph cluster_deterministic {
+    label="결정적 입력 레인";
+    style="rounded,dashed";
+    color="#d8dee9";
+    fontcolor="#607086";
+    fontsize=16;
+
+    DataRegistry [label="DataRegistry\n정의 데이터 조회", fillcolor="#f7f9fc", color="#bac7db"];
+    TimeService [label="TimeService\n게임 시간 제공", fillcolor="#e9fbff", color="#54b7cf"];
+    RandomService [label="RandomStream\n시드 기반 결정적 난수", fillcolor="#f0f3f9", color="#99a8bd"];
+
+    DefinitionInputs [label="정의 입력 레인\nStat · Effect · Skill", fillcolor="#ffffff", color="#bac7db"];
+    ClockInputs [label="시간 입력 레인\n쿨다운 · 지속시간 · 틱", fillcolor="#ffffff", color="#bac7db"];
+    RandomInputs [label="난수 입력 레인\n요청 시드 · 명중 · 치명타", fillcolor="#ffffff", color="#bac7db"];
+  }
+
+  ConsumerSystems [label="소비 시스템\nStat · Effect · Skill\nStatus · Combat", fillcolor="#fff0f3", color="#e07b91", penwidth=1.8];
+
+  { rank=same; EntityRegistry; TagService; SourceTracker; DataRegistry; TimeService; RandomService; }
+  { rank=same; ContextFactory; DefinitionInputs; ClockInputs; RandomInputs; }
+
+  EntityRegistry -> TagService -> SourceTracker -> DataRegistry -> TimeService -> RandomService [style=invis, weight=50];
+  ContextFactory -> DefinitionInputs -> ClockInputs -> RandomInputs [style=invis, weight=50];
+
+  EntityRegistry -> ContextFactory [label="행위자 · 대상 식별"];
+  TagService -> ContextFactory [label="태그"];
+  SourceTracker -> ContextFactory [label="SourceRef"];
+
+  DataRegistry -> DefinitionInputs [label="정의"];
+  TimeService -> ClockInputs [label="시간"];
+  RandomService -> RandomInputs [label="시드"];
+
+  ContextFactory -> ConsumerSystems [label="불변 실행 컨텍스트"];
+  DefinitionInputs -> ConsumerSystems;
+  ClockInputs -> ConsumerSystems;
+  RandomInputs -> ConsumerSystems;
+}

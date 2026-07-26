@@ -1,0 +1,27 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.28, ranksep=0.80, nodesep=0.78, newrank=true, splines=polyline, label="Skill Data Model 상세 2/3 · 승인에서 release plan까지", labelloc=t, fontsize=18];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.18,0.11", width=2.8, height=0.58];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=10, arrowsize=0.8, penwidth=1.3];
+  rankdir=TB;
+
+  Request [label="<<public contract · 실행 C#>>\nSkillRequest\nCommandId · CasterId · SkillId · RequestedTick", fillcolor="#eefbf6", color="#61b99a"];
+  Decision [label="<<public contract · 실행 C#>>\nSkillDecision\nCanExecute · FailureReason?", fillcolor="#f3eefc", color="#ab8fe0"];
+  SkillBook [style="rounded,dashed,filled", label="<<product model>> SkillBook\n학습한 skill id를 소유", fillcolor="#eaf0ff", color="#8292f7"];
+  SkillRuntime [style="rounded,dashed,filled", label="<<product model>> SkillRuntime\n레벨 · cooldown · charges\ncommit된 mutation만 반영", fillcolor="#eaf0ff", color="#8292f7"];
+  SkillExecution [style="rounded,dashed,filled", label="<<internal product model>> SkillExecution\n한 번의 cast identity · phase · marker", fillcolor="#eaf0ff", color="#8292f7"];
+  SkillMutation [style="rounded,dashed,filled", label="<<product model>> SkillMutation\n비용 delta · cooldown ready tick · charge delta", fillcolor="#eefbf6", color="#61b99a"];
+  EffectPlan [label="<<public Effect contract>> EffectBundlePlan\nPrimaryOperations · Reactions\nIEffectPlanner.Prepare 결과", fillcolor="#eefbf6", color="#61b99a"];
+  ReleasePlan [style="rounded,dashed,filled", label="<<internal project model · product-only>>\nSkillReleasePlan\nSkillMutation + EffectBundlePlan + version preconditions", fillcolor="#e9fbff", color="#54b7cf"];
+
+  { rank=same; SkillBook; Request; }
+  { rank=same; SkillRuntime; Decision; }
+  { rank=same; SkillMutation; EffectPlan; }
+
+  Request -> Decision [label="검증 결과"];
+  Decision -> SkillExecution [label="승인 시 Begin(request)", style=dashed, color="#4f8b74", fontcolor="#3f735f"];
+  SkillBook -> SkillRuntime [label="장기 availability", style=dashed];
+  SkillExecution -> SkillMutation [label="PrepareRelease", style=dashed];
+  SkillMutation -> ReleasePlan [style=dashed];
+  EffectPlan -> ReleasePlan [label="public plan 결합"];
+  SkillRuntime -> ReleasePlan [label="snapshot + version precondition", style=dashed];
+}

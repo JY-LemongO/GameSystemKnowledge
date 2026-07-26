@@ -1,0 +1,22 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.28, ranksep=0.78, nodesep=0.56, outputorder=edgesfirst, splines=polyline, label="Effect 핵심 클래스 상세 1 · 정의 모델에서 실행 단위까지", labelloc=t, fontsize=16];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.16,0.10"];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=9, arrowsize=0.8, penwidth=1.3];
+
+  rankdir=TB;
+
+  EffectDefinition [label="<<content data>>\nEffectDefinition\n효과 종류 · 대상 · 값 · 조건 참조", fillcolor="#fff0f3", color="#e07b91"];
+  TargetSelector [label="TargetSelector\n대상 형태 · 거리 · 제한 · 필터", fillcolor="#f3eefc", color="#ab8fe0"];
+  ValueExpression [label="ValueExpression\n기본값 · 스케일링 · 최소/최대", fillcolor="#f3eefc", color="#ab8fe0"];
+  EffectCondition [label="EffectCondition\n실행 전 조건 평가", fillcolor="#f3eefc", color="#ab8fe0"];
+  DefinitionNormalizer [label="<<internal stage>>\nDefinitionNormalizer\n스키마 검증과 정의 정규화", fillcolor="#eaf0ff", color="#8292f7"];
+  EffectOperation [label="EffectOperation\n대상 결합 전 런타임 실행 단위", fillcolor="#eefbf6", color="#61b99a"];
+
+  { rank=same; TargetSelector; ValueExpression; EffectCondition; }
+
+  EffectDefinition -> TargetSelector [label="대상 규칙 참조", color="#7257A6"];
+  EffectDefinition -> ValueExpression [label="선택 값 계산식", color="#7257A6"];
+  EffectDefinition -> EffectCondition [label="조건 0..*", color="#7257A6"];
+  EffectDefinition -> DefinitionNormalizer [label="정규화 요청", color="#5B6F8F"];
+  DefinitionNormalizer -> EffectOperation [label="실행 계약 생성", color="#3D8B6D"];
+}

@@ -17,6 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE_DIR = ROOT / "source" / "diagrams"
+DETAIL_SOURCE_DIR = SOURCE_DIR / "details"
 OUTPUT_DIR = ROOT / "assets" / "diagrams"
 SOURCE_MANIFEST = OUTPUT_DIR / "source-manifest.json"
 RENDER_PROFILE = "chalkboard-dark-v1"
@@ -256,16 +257,54 @@ def render(
         target.write_text(svg, encoding="utf-8", newline="\n")
 
 
+def canonical_sources() -> list[Path]:
+    return sorted(SOURCE_DIR.glob("*.dot"))
+
+
+def detail_sources() -> list[Path]:
+    return sorted(DETAIL_SOURCE_DIR.glob("*.dot"))
+
+
+def all_sources() -> list[Path]:
+    return canonical_sources() + detail_sources()
+
+
+def source_key(source: Path) -> str:
+    return source.relative_to(SOURCE_DIR).as_posix()
+
+
+def logical_stem(source: Path) -> str:
+    return source.stem.split("__detail_", 1)[0]
+
+
+def public_asset(source: Path, output_format: str) -> Path:
+    return OUTPUT_DIR / source.relative_to(SOURCE_DIR).with_suffix(f".{output_format}")
+
+
 def selected_sources(patterns: list[str]) -> list[Path]:
-    sources = sorted(SOURCE_DIR.glob("*.dot"))
+    sources = all_sources()
     if not patterns:
         return sources
-    wanted = {pattern.removesuffix(".dot") for pattern in patterns}
-    selected = [source for source in sources if source.stem in wanted or source.name in patterns]
-    missing = sorted(wanted - {source.stem for source in selected})
+    wanted = {
+        pattern.replace("\\", "/").removesuffix(".dot").removeprefix("details/")
+        for pattern in patterns
+    }
+    selected: list[Path] = []
+    matched: set[str] = set()
+    for source in sources:
+        stem = source.stem
+        key_stem = source_key(source).removesuffix(".dot").removeprefix("details/")
+        for pattern in wanted:
+            if pattern in (stem, key_stem) or (
+                "__detail_" not in pattern and logical_stem(source) == pattern
+            ):
+                selected.append(source)
+                matched.add(pattern)
+                break
+    missing = sorted(wanted - matched)
     if missing:
         raise SystemExit(f"Unknown diagram source(s): {', '.join(missing)}")
-    return selected
+    return sorted(set(selected))
 
 
 def source_digest(source: Path) -> str:
@@ -273,34 +312,76 @@ def source_digest(source: Path) -> str:
     return hashlib.sha256(render_input.encode("utf-8")).hexdigest()
 
 
-def load_source_manifest() -> dict[str, str]:
+def empty_source_manifest() -> dict[str, object]:
+    return {
+        "schemaVersion": 2,
+        "algorithm": "sha256",
+        "renderProfile": RENDER_PROFILE,
+        "sources": {},
+        "detailSources": {},
+        "logicalDiagrams": {},
+    }
+
+
+def load_source_manifest(*, allow_legacy: bool = False) -> dict[str, object]:
     if not SOURCE_MANIFEST.is_file():
-        return {}
+        return empty_source_manifest()
     try:
         payload = json.loads(SOURCE_MANIFEST.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise SystemExit(f"Invalid diagram source manifest: {error}") from error
     if (
-        payload.get("schemaVersion") != 1
+        allow_legacy
+        and payload.get("schemaVersion") == 1
+        and payload.get("algorithm") == "sha256"
+        and payload.get("renderProfile") == RENDER_PROFILE
+    ):
+        migrated = empty_source_manifest()
+        migrated["sources"] = payload.get("sources", {})
+        return migrated
+    if (
+        payload.get("schemaVersion") != 2
         or payload.get("algorithm") != "sha256"
         or payload.get("renderProfile") != RENDER_PROFILE
     ):
         raise SystemExit("Invalid diagram source manifest header")
-    sources = payload.get("sources")
-    if not isinstance(sources, dict) or not all(
-        isinstance(name, str) and isinstance(digest, str)
-        for name, digest in sources.items()
-    ):
-        raise SystemExit("Invalid diagram source manifest entries")
-    return sources
+    for field in ("sources", "detailSources"):
+        entries = payload.get(field)
+        if not isinstance(entries, dict) or not all(
+            isinstance(name, str) and isinstance(digest, str)
+            for name, digest in entries.items()
+        ):
+            raise SystemExit(f"Invalid diagram source manifest {field} entries")
+    if not isinstance(payload.get("logicalDiagrams"), dict):
+        raise SystemExit("Invalid diagram source manifest logical diagram entries")
+    return payload
+
+
+def logical_catalog() -> dict[str, dict[str, object]]:
+    details_by_logical: dict[str, list[str]] = {}
+    for source in detail_sources():
+        details_by_logical.setdefault(logical_stem(source), []).append(source_key(source))
+    return {
+        source.stem: {
+            "overview": source_key(source),
+            "details": sorted(details_by_logical.get(source.stem, [])),
+        }
+        for source in canonical_sources()
+    }
 
 
 def write_source_manifest(entries: dict[str, str]) -> None:
-    payload = {
-        "schemaVersion": 1,
+    payload: dict[str, object] = {
+        "schemaVersion": 2,
         "algorithm": "sha256",
         "renderProfile": RENDER_PROFILE,
-        "sources": dict(sorted(entries.items())),
+        "sources": dict(sorted(
+            (key, digest) for key, digest in entries.items() if not key.startswith("details/")
+        )),
+        "detailSources": dict(sorted(
+            (key, digest) for key, digest in entries.items() if key.startswith("details/")
+        )),
+        "logicalDiagrams": logical_catalog(),
     }
     SOURCE_MANIFEST.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
@@ -319,21 +400,44 @@ def asset_is_well_formed(path: Path, output_format: str) -> bool:
 
 
 def check_generated_assets(sources: list[Path], require_complete_manifest: bool) -> list[str]:
-    recorded = load_source_manifest()
+    payload = load_source_manifest()
+    recorded = {
+        **payload["sources"],
+        **payload["detailSources"],
+    }
     failures: list[str] = []
     if require_complete_manifest:
-        all_source_names = {source.name for source in SOURCE_DIR.glob("*.dot")}
+        all_source_names = {source_key(source) for source in all_sources()}
         missing = sorted(all_source_names - recorded.keys())
         extra = sorted(recorded.keys() - all_source_names)
         failures.extend(f"manifest missing {name}" for name in missing)
         failures.extend(f"manifest retains removed source {name}" for name in extra)
+        if payload.get("logicalDiagrams") != logical_catalog():
+            failures.append("manifest logical diagram catalog is stale")
+        for output_format in ("svg", "png"):
+            expected_assets = {
+                public_asset(source, output_format).relative_to(OUTPUT_DIR).as_posix()
+                for source in all_sources()
+            }
+            actual_assets = {
+                path.relative_to(OUTPUT_DIR).as_posix()
+                for path in OUTPUT_DIR.rglob(f"*.{output_format}")
+            }
+            failures.extend(
+                f"missing generated asset: {name}"
+                for name in sorted(expected_assets - actual_assets)
+            )
+            failures.extend(
+                f"orphan generated asset: {name}"
+                for name in sorted(actual_assets - expected_assets)
+            )
 
     for source in sources:
         digest = source_digest(source)
-        if recorded.get(source.name) != digest:
+        if recorded.get(source_key(source)) != digest:
             failures.append(f"source digest changed: {source.relative_to(ROOT)}")
         for output_format in ("svg", "png"):
-            public = OUTPUT_DIR / f"{source.stem}.{output_format}"
+            public = public_asset(source, output_format)
             if not asset_is_well_formed(public, output_format):
                 failures.append(f"missing or invalid asset: {public.relative_to(ROOT)}")
 
@@ -365,23 +469,31 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="gsk-diagrams-") as temporary:
         temp_dir = Path(temporary)
         for source in sources:
-            render_source = temp_dir / source.name
+            relative = source.relative_to(SOURCE_DIR)
+            render_source = temp_dir / relative
+            render_source.parent.mkdir(parents=True, exist_ok=True)
             render_source.write_text(themed_source_text(source), encoding="utf-8", newline="\n")
             generated: dict[str, Path] = {}
             for output_format in ("svg", "png"):
-                target = temp_dir / f"{source.stem}.{output_format}"
+                target = render_source.with_suffix(f".{output_format}")
                 render(dot, render_source, target, output_format, source)
                 generated[output_format] = target
 
-            for candidate in generated.values():
-                shutil.copyfile(candidate, OUTPUT_DIR / candidate.name)
-            print(f"rendered {source.stem}")
+            for output_format, candidate in generated.items():
+                destination = public_asset(source, output_format)
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(candidate, destination)
+            print(f"rendered {source_key(source).removesuffix('.dot')}")
 
-    recorded = load_source_manifest() if args.only else {}
-    current_names = {source.name for source in SOURCE_DIR.glob("*.dot")}
+    existing = load_source_manifest(allow_legacy=True) if args.only else empty_source_manifest()
+    recorded = {
+        **existing["sources"],
+        **existing["detailSources"],
+    }
+    current_names = {source_key(source) for source in all_sources()}
     recorded = {name: digest for name, digest in recorded.items() if name in current_names}
     for source in sources:
-        recorded[source.name] = source_digest(source)
+        recorded[source_key(source)] = source_digest(source)
     write_source_manifest(recorded)
     print(f"rendered {len(sources)} diagram source(s)")
     return 0

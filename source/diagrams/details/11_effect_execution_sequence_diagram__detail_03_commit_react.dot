@@ -1,0 +1,28 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.28, ranksep=0.76, nodesep=0.58, outputorder=edgesfirst, splines=polyline, label="Effect 실행 상세 3 · 원자적 커밋과 후속 반응", labelloc=t, fontsize=16];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.16,0.10"];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=9, arrowsize=0.8, penwidth=1.3];
+
+  rankdir=TB;
+
+  CommitPlan [label="CommitPlan\n검증된 mutation + outbox 계획", fillcolor="#e9fbff", color="#54b7cf"];
+  RuntimeCommitter [label="RuntimeCommitter\nversion · invariant 최종 확인", fillcolor="#eefbf6", color="#61b99a"];
+  AtomicWrite [label="상태 + durable outbox\n한 트랜잭션으로 기록", fillcolor="#fff7e6", color="#e0ad4e"];
+  Receipt [label="CommitReceipt\n+ committed facts", fillcolor="#e9fbff", color="#54b7cf"];
+  Dispatcher [label="<<product adapter boundary>>\nExternal dispatcher\n커밋된 outbox만 읽음", fillcolor="#f0f3f9", color="#99a8bd", style="rounded,filled,dashed"];
+  ReactionQueue [label="ReactionQueue\n상한이 있는 후속 command", fillcolor="#f3eefc", color="#ab8fe0"];
+  Response [label="Product response / DebugTrace\ncommit · no-op · 실패 관찰", fillcolor="#f0f3f9", color="#99a8bd"];
+  Failure [shape=note, label="커밋 거부\nversion / invariant 실패\n상태 · outbox 변경 없음", fillcolor="#fff0f3", color="#e07b91"];
+
+  { rank=same; ReactionQueue; Response; }
+
+  CommitPlan -> RuntimeCommitter [label="Commit 요청"];
+  RuntimeCommitter -> AtomicWrite [label="원자적 확정", color="#3D8B6D"];
+  AtomicWrite -> Receipt [label="커밋 사실 반환", color="#3D8B6D"];
+  Receipt -> Dispatcher [label="outbox 공개"];
+  Dispatcher -> ReactionQueue [label="matching reaction", color="#7257A6"];
+  Dispatcher -> Response [label="일치 반응 없음", color="#8292A8"];
+  ReactionQueue -> Response [label="새 command를 별도 실행"];
+  RuntimeCommitter -> Failure [label="검증 실패", style=dashed, color="#dc2626", fontcolor="#dc2626"];
+  Failure -> Response [label="실패 결과"];
+}

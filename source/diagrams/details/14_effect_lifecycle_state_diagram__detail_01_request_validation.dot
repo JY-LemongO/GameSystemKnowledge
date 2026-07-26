@@ -1,0 +1,30 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.28, ranksep=0.76, nodesep=0.62, outputorder=edgesfirst, splines=polyline, label="Effect 생명주기 상세 1 · 등록, 요청, 검증", labelloc=t, fontsize=16];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.16,0.10"];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=9, arrowsize=0.8, penwidth=1.3];
+
+  rankdir=TB;
+
+  Defined [label="Defined\nproduct registry의 대상 독립 정의", fillcolor="#fff7e6", color="#e0ad4e"];
+  Registered [label="Registered\n로드 · 정규화 · 스키마 검증", fillcolor="#eaf0ff", color="#8292f7"];
+  Requested [label="Requested\nReferenceEffectSpecification\n+ EffectContext", fillcolor="#eaf0ff", color="#8292f7"];
+  SnapshotReady [label="Snapshot Ready\nimmutable CandidateSnapshot", fillcolor="#f3eefc", color="#ab8fe0"];
+  Validating [label="Validating\nspec · context · snapshot 구조 검증", fillcolor="#f3eefc", color="#ab8fe0"];
+  Scheduled [label="<<product extension>> Scheduled\n지연 또는 주기 실행 시각 대기", fillcolor="#f0f3f9", color="#99a8bd", style="rounded,filled,dashed"];
+  Cancelled [label="<<product extension>> Cancelled\n합성 전 요청 취소", fillcolor="#fff0f3", color="#e07b91", style="rounded,filled,dashed"];
+  Failed [label="Failed\n잘못된 specification 또는 rule", fillcolor="#fff0f3", color="#e07b91"];
+
+  { rank=same; SnapshotReady; Scheduled; }
+  { rank=same; Validating; Cancelled; }
+
+  Defined -> Registered [label="검증된 정의 등록"];
+  Registered -> Requested [label="specification 요청 생성"];
+  Requested -> SnapshotReady [label="CandidateSnapshot 모드"];
+  Requested -> Validating [label="Self / Explicit", constraint=false];
+  SnapshotReady -> Validating [label="불변 후보 전달"];
+  Requested -> Scheduled [label="product scheduling", style=dashed, color="#8292A8"];
+  Scheduled -> Requested [label="due: 요청 enqueue", style=dashed, color="#8292A8", constraint=false];
+  Requested -> Cancelled [label="검증 전 취소", style=dashed, color="#C45C6D"];
+  Validating -> Cancelled [label="검증 중 취소", style=dashed, color="#C45C6D", constraint=false];
+  Validating -> Failed [label="구조 또는 규칙 오류", style=dashed, color="#C45C6D"];
+}

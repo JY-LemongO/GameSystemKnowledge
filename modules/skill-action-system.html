@@ -1013,25 +1013,71 @@ public sealed class SkillResult
 <h2 id="action-timeline">
       Action Timeline
      </h2>
-<figure class="diagram">
-<div class="dh">
-<strong>
-        Action Timeline 활동 흐름
-       </strong>
-<div class="da">
-<a class="small" href="../assets/diagrams/20_skill_timeline_activity_diagram.svg" target="_blank">
-         SVG
-        </a>
-<a class="small" href="../assets/diagrams/20_skill_timeline_activity_diagram.png" target="_blank">
-         PNG
-        </a>
+<section aria-labelledby="skill-timeline-diagram-story-title" class="diagram-story" data-diagram-series="20_skill_timeline_activity_diagram" id="skill-timeline-diagram-story">
+<div class="diagram-story-head">
+<div>
+<span class="section-kicker">Diagram story · action timeline</span>
+<h3 id="skill-timeline-diagram-story-title">Action Timeline을 세 실행 구간으로 읽기</h3>
+<p>입력 승인과 비용 정책, cast와 release 준비, atomic commit 이후를 분리한다. 애니메이션 시간과 게임 규칙의 commit 시점을 같은 것으로 보지 않는다.</p>
 </div>
+<span class="diagram-story-count">3 DETAIL VIEWS</span>
 </div>
-<img alt="Action Timeline 활동 흐름" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/20_skill_timeline_activity_diagram.svg"/>
-<figcaption class="cap">
-       입력부터 검증, 비용 예약, 선딜, release marker, 후딜, 쿨다운까지 행동의 시간 구조를 보여준다.
-      </figcaption>
+<ol class="diagram-step-list">
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Admission과 비용 시점</h4>
+<p>SkillRequest를 먼저 검증하고 비용을 release까지 예약할지, 별도 prepay commit으로 먼저 지불할지 선택한다.</p>
+<ul>
+<li>검증 실패는 mutation과 event 없이 public failure로 끝난다.</li>
+<li>reserve와 prepay는 중단 시 보상 규칙이 서로 다르다.</li>
+</ul>
+</div>
+<figure aria-labelledby="skill-timeline-detail-01-title" class="diagram" data-diagram-view="detail-01">
+<div class="dh"><strong id="skill-timeline-detail-01-title">01 · Admission &amp; cost timing</strong><div class="da"><a class="small" href="../assets/diagrams/details/20_skill_timeline_activity_diagram__detail_01_validate_cost.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/20_skill_timeline_activity_diagram__detail_01_validate_cost.png" target="_blank">PNG</a></div></div>
+<img alt="Skill 요청 검증과 reserve 또는 prepay 비용 정책 분기" aria-describedby="skill-timeline-detail-01-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/20_skill_timeline_activity_diagram__detail_01_validate_cost.svg"/>
+<figcaption class="cap" id="skill-timeline-detail-01-caption">실행 가능 여부를 확정한 뒤 비용 정책을 선택한다. release 예약은 아직 상태를 쓰지 않으며 prepay만 별도 commit 경계를 가진다.</figcaption>
 </figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Cast, interrupt, release preparation</h4>
+<p>windup 중단 여부를 판단하고 release marker에 도달했을 때 Effect context와 plan을 준비해 Skill 변경과 합친다.</p>
+<ul>
+<li>중단은 예약 폐기 또는 명시적 prepay 보상으로 끝난다.</li>
+<li>release marker가 EffectBundlePlan 준비의 게임 규칙 시점이다.</li>
+</ul>
+</div>
+<figure aria-labelledby="skill-timeline-detail-02-title" class="diagram" data-diagram-view="detail-02">
+<div class="dh"><strong id="skill-timeline-detail-02-title">02 · Cast, interrupt &amp; release preparation</strong><div class="da"><a class="small" href="../assets/diagrams/details/20_skill_timeline_activity_diagram__detail_02_windup_release.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/20_skill_timeline_activity_diagram__detail_02_windup_release.png" target="_blank">PNG</a></div></div>
+<img alt="Skill windup과 interrupt 판단 및 release plan 준비 흐름" aria-describedby="skill-timeline-detail-02-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/20_skill_timeline_activity_diagram__detail_02_windup_release.svg"/>
+<figcaption class="cap" id="skill-timeline-detail-02-caption">타임라인은 애니메이션 재생기가 아니라 판정 marker와 취소 정책을 제공한다. marker에서 비용·쿨다운과 Effect plan을 하나의 commit 후보로 합친다.</figcaption>
+</figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Atomic commit과 post-commit 흐름</h4>
+<p>결합된 plan을 한 번 검증·commit하고, 성공한 경우에만 committed fact, reaction, recovery 순서로 진행한다.</p>
+<ul>
+<li>version 또는 invariant 실패는 모든 mutation과 outbox를 보존한다.</li>
+<li>후속 Burn 같은 반응은 이미 commit된 주 결과를 되감지 않는다.</li>
+</ul>
+</div>
+<figure aria-labelledby="skill-timeline-detail-03-title" class="diagram" data-diagram-view="detail-03">
+<div class="dh"><strong id="skill-timeline-detail-03-title">03 · Atomic commit &amp; post-commit flow</strong><div class="da"><a class="small" href="../assets/diagrams/details/20_skill_timeline_activity_diagram__detail_03_commit_recovery.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/20_skill_timeline_activity_diagram__detail_03_commit_recovery.png" target="_blank">PNG</a></div></div>
+<img alt="Skill release plan의 atomic commit과 committed fact 이후 reaction 및 recovery 흐름" aria-describedby="skill-timeline-detail-03-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/20_skill_timeline_activity_diagram__detail_03_commit_recovery.svg"/>
+<figcaption class="cap" id="skill-timeline-detail-03-caption">commit 결과가 성공일 때만 사실을 발행하고 reaction queue와 recovery로 이동한다. 실패는 public result로 반환되며 부분 적용이 없다.</figcaption>
+</figure>
+</li>
+</ol>
+<details class="diagram-overview">
+<summary>Action Timeline 전체 흐름 보기</summary>
+<figure aria-labelledby="skill-timeline-overview-title" class="diagram" data-diagram-view="overview">
+<div class="dh"><strong id="skill-timeline-overview-title">Action Timeline · Overview</strong><div class="da"><a class="small" href="../assets/diagrams/20_skill_timeline_activity_diagram.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/20_skill_timeline_activity_diagram.png" target="_blank">PNG</a></div></div>
+<img alt="Skill 입력부터 recovery까지의 전체 Action Timeline" aria-describedby="skill-timeline-overview-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/20_skill_timeline_activity_diagram.svg"/>
+<figcaption class="cap" id="skill-timeline-overview-caption">입력, 비용, cast, release, composition, commit, reaction과 실패 분기를 한 번에 복습하는 전체 활동 지도다.</figcaption>
+</figure>
+</details>
+</section>
 <p>
       타임라인은 애니메이션 길이와 같지 않다. 게임 규칙상 판정이 발생하는 marker, 입력을 받을 수 있는 cancel window, 중단 시 정책이 별도로 존재해야 한다.
      </p>
@@ -1124,22 +1170,71 @@ public sealed class SkillResult
 <h2 id="데이터-모델">
       데이터 모델
      </h2>
-<figure class="diagram">
-<div class="dh">
-<strong>
-        Skill 데이터 모델
-       </strong>
-<div class="da">
-<a class="small" href="../assets/diagrams/21_skill_data_model_diagram.svg" target="_blank">
-         SVG
-        </a>
+<section aria-labelledby="skill-data-diagram-story-title" class="diagram-story" data-diagram-series="21_skill_data_model_diagram" id="skill-data-diagram-story">
+<div class="diagram-story-head">
+<div>
+<span class="section-kicker">Diagram story · data ownership</span>
+<h3 id="skill-data-diagram-story-title">Skill 데이터 모델을 세 소유권으로 읽기</h3>
+<p>정적 정의, 한 번의 실행과 가용성 상태, release plan과 commit 증거를 나눠 보면 데이터의 수명과 변경 주체가 명확해진다.</p>
 </div>
+<span class="diagram-story-count">3 DETAIL VIEWS</span>
 </div>
-<img alt="Skill 데이터 모델" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/21_skill_data_model_diagram.svg"/>
-<figcaption class="cap">
-       SkillDefinition의 정적 데이터와 SkillRuntimeState, SkillMutation 같은 런타임 확장 데이터를 분리한다.
-      </figcaption>
+<ol class="diagram-step-list">
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>정적 Definition data</h4>
+<p>SkillDefinition이 비용·쿨다운·타깃·타임라인 정책과 EffectBundle 참조를 소유한다. 플레이 도중 변하는 값은 포함하지 않는다.</p>
+<ul>
+<li>정의 ID와 정책은 콘텐츠 버전의 일부다.</li>
+<li>EffectBundleRef는 공개 Effect plan으로 이어지는 참조다.</li>
+</ul>
+</div>
+<figure aria-labelledby="skill-data-detail-01-title" class="diagram" data-diagram-view="detail-01">
+<div class="dh"><strong id="skill-data-detail-01-title">01 · Definition data</strong><div class="da"><a class="small" href="../assets/diagrams/details/21_skill_data_model_diagram__detail_01_definition_data.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/21_skill_data_model_diagram__detail_01_definition_data.png" target="_blank">PNG</a></div></div>
+<img alt="SkillDefinition과 비용 쿨다운 타깃 타임라인 EffectBundle 정의 관계" aria-describedby="skill-data-detail-01-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/21_skill_data_model_diagram__detail_01_definition_data.svg"/>
+<figcaption class="cap" id="skill-data-detail-01-caption">정의 데이터는 authoring과 balance의 입력이다. 실제 비용 차감이나 쿨다운 tick은 runtime state와 commit plan에서 다룬다.</figcaption>
 </figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Admission과 runtime execution</h4>
+<p>공개 요청을 validator가 판정하고, accepted인 경우에만 한 실행을 나타내는 SkillExecution이 만들어진다.</p>
+<ul>
+<li>SkillBook과 SkillRuntime은 학습 여부와 현재 가용성을 소유한다.</li>
+<li>거부 결과는 실행 객체나 mutation을 만들지 않는다.</li>
+</ul>
+</div>
+<figure aria-labelledby="skill-data-detail-02-title" class="diagram" data-diagram-view="detail-02">
+<div class="dh"><strong id="skill-data-detail-02-title">02 · Admission &amp; runtime state</strong><div class="da"><a class="small" href="../assets/diagrams/details/21_skill_data_model_diagram__detail_02_runtime_execution.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/21_skill_data_model_diagram__detail_02_runtime_execution.png" target="_blank">PNG</a></div></div>
+<img alt="SkillRequest 검증과 SkillBook SkillRuntime SkillExecution의 런타임 관계" aria-describedby="skill-data-detail-02-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/21_skill_data_model_diagram__detail_02_runtime_execution.svg"/>
+<figcaption class="cap" id="skill-data-detail-02-caption">요청·판정은 public contract이고 SkillExecution은 project 내부 실행 모델이다. 정의와 현재 상태를 섞지 않아 재시도와 저장 경계를 분리한다.</figcaption>
+</figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Release plan과 commit evidence</h4>
+<p>SkillMutation과 EffectBundlePlan을 version precondition과 함께 ReleasePlan으로 묶고, commit receipt와 public result 및 trace를 분리한다.</p>
+<ul>
+<li>ReleasePlan은 상태 변경 전의 내부 준비물이다.</li>
+<li>CommitReceipt는 성공 사실이고 DebugTrace는 계산 근거다.</li>
+</ul>
+</div>
+<figure aria-labelledby="skill-data-detail-03-title" class="diagram" data-diagram-view="detail-03">
+<div class="dh"><strong id="skill-data-detail-03-title">03 · Release plan &amp; atomic commit</strong><div class="da"><a class="small" href="../assets/diagrams/details/21_skill_data_model_diagram__detail_03_public_commit_evidence.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/21_skill_data_model_diagram__detail_03_public_commit_evidence.png" target="_blank">PNG</a></div></div>
+<img alt="SkillMutation과 EffectBundlePlan이 ReleasePlan과 commit receipt 및 결과로 이어지는 관계" aria-describedby="skill-data-detail-03-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/21_skill_data_model_diagram__detail_03_public_commit_evidence.svg"/>
+<figcaption class="cap" id="skill-data-detail-03-caption">상태 snapshot과 version 조건, Skill 변경, Effect plan을 atomic commit 입력으로 합친다. 결과와 trace는 commit의 소유자가 아니라 관찰 증거다.</figcaption>
+</figure>
+</li>
+</ol>
+<details class="diagram-overview">
+<summary>Skill 데이터 모델 전체 지도 보기</summary>
+<figure aria-labelledby="skill-data-overview-title" class="diagram" data-diagram-view="overview">
+<div class="dh"><strong id="skill-data-overview-title">Skill 데이터 모델 · Overview</strong><div class="da"><a class="small" href="../assets/diagrams/21_skill_data_model_diagram.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/21_skill_data_model_diagram.png" target="_blank">PNG</a></div></div>
+<img alt="Skill 정의와 런타임 실행 및 commit 증거의 전체 데이터 모델" aria-describedby="skill-data-overview-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/21_skill_data_model_diagram.svg"/>
+<figcaption class="cap" id="skill-data-overview-caption">세 상세 장을 읽은 뒤 Definition, runtime state, public input/result, commit과 observation의 전체 연결을 복습한다.</figcaption>
+</figure>
+</details>
+</section>
 <pre><code class="language-json">{
   "id": "skill.fireball",
   "displayName": "Fireball",

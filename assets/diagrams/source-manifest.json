@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "algorithm": "sha256",
   "renderProfile": "chalkboard-dark-v1",
   "sources": {
@@ -37,5 +37,189 @@
     "39_runtime_ports_and_adapters.dot": "b6f3c9ca78924c8c0c6444441dd037707b2213273f2107ba8146aa456736afc0",
     "40_resolve_commit_reaction_sequence.dot": "1f10ecd68468d22ea4bc5fc2bb59e4175ee9c55839e1412a8d88d6316c11bec2",
     "41_deterministic_replay_envelope.dot": "173b8f52d54ae22778de3e383392cf21c747b5f36ecf2f8143ae1de0fe7173f4"
+  },
+  "detailSources": {
+    "details/10_effect_core_class_diagram__detail_01_definition_model.dot": "ff72190e4243b5010bf815aa918da9fe9364ee81e69c319397709a9e1549e9b2",
+    "details/10_effect_core_class_diagram__detail_02_runtime_contracts.dot": "e3933721ffb8ad0f20e7f7f2be6ac42f9278a7c803a974beecd470e66f05c85b",
+    "details/10_effect_core_class_diagram__detail_03_execution_commit.dot": "255117339dcacd480fe0df1d0ed0738adec18484b94b57a7f49d11555638bf0f",
+    "details/11_effect_execution_sequence_diagram__detail_01_intent_target_bind.dot": "4ff326e8376f05500a3d773c72df63d987165ab59e678b2a6bb9c73b4ad34c4e",
+    "details/11_effect_execution_sequence_diagram__detail_02_resolve_compose.dot": "01658988351ba72266f14bd7ad52fc549ff20435de2a395b5d00dac617dcd3ee",
+    "details/11_effect_execution_sequence_diagram__detail_03_commit_react.dot": "4739137353db25c23f08e17a0652a44a4ff31375c67a6b225390e509dd2bfb64",
+    "details/14_effect_lifecycle_state_diagram__detail_01_request_validation.dot": "35f8c9a0b3223bc24ac062a98eaa4aa7f55ba09db5bc20bed2e8c1e66f46203e",
+    "details/14_effect_lifecycle_state_diagram__detail_02_resolve_planning.dot": "cc517afac0ab7d15992e78b49ab1414690130c1a20fa270e4b8cfcbd7756fad8",
+    "details/14_effect_lifecycle_state_diagram__detail_03_commit_reaction.dot": "f9764e4d6e6ec09d32fe5a3f73aec609a15e0eacf754dcf984f9db0b3ef19a20",
+    "details/16_core_runtime_component_diagram__detail_01_identity_inputs.dot": "f73ca0bddc90c5b0268d5352321a0c448637c7b35998bc51fb2bf7f722ccf33e",
+    "details/16_core_runtime_component_diagram__detail_02_consumers_commit_plans.dot": "89ce96f4aa444ffacb19a396f79a3070931b4f3510c6f86720435f251e7ef79b",
+    "details/16_core_runtime_component_diagram__detail_03_commit_reactions.dot": "0863d712a791d4addcda5f7691334b42bc549337a1dc4f615151453552d7a3e5",
+    "details/16_core_runtime_component_diagram__detail_04_observation_trace.dot": "290f419a40c63ef241f9c597e07555f27f4dd9da24abe51fb035c7c5b34d2d4e",
+    "details/20_skill_timeline_activity_diagram__detail_01_validate_cost.dot": "9bda2644ee4fc4e3d165eb80756843a93ccdb8cfcd27eba2b141c7a191425a6a",
+    "details/20_skill_timeline_activity_diagram__detail_02_windup_release.dot": "7670c9ab2e6b09eae084bb2bffec6e28443abfe65c9cec8dbd2e61bfa98203fc",
+    "details/20_skill_timeline_activity_diagram__detail_03_commit_recovery.dot": "f32b2123ea5fa44cd497117770d42a2d367ce9f293688154eceb81bdd8a5224b",
+    "details/21_skill_data_model_diagram__detail_01_definition_data.dot": "b534fbf0cebc72ca0ddeaad50cc0d7ab689982bc7b4f9da8fe92f4cdf88106d7",
+    "details/21_skill_data_model_diagram__detail_02_runtime_execution.dot": "735df8feac921aad56644bbfb04437f20db523158f0a85423bdce2fe4bb0c8cc",
+    "details/21_skill_data_model_diagram__detail_03_public_commit_evidence.dot": "9369a2a1a92a34d705182ed3766e8ff34c668668cd3fa07434c1513d871d3afc"
+  },
+  "logicalDiagrams": {
+    "01_core_class_diagram": {
+      "overview": "01_core_class_diagram.dot",
+      "details": []
+    },
+    "02_extension_class_diagram": {
+      "overview": "02_extension_class_diagram.dot",
+      "details": []
+    },
+    "03_component_diagram": {
+      "overview": "03_component_diagram.dot",
+      "details": []
+    },
+    "04_calculation_activity_diagram": {
+      "overview": "04_calculation_activity_diagram.dot",
+      "details": []
+    },
+    "05_modifier_lifecycle_state_diagram": {
+      "overview": "05_modifier_lifecycle_state_diagram.dot",
+      "details": []
+    },
+    "06_modifier_application_sequence_diagram": {
+      "overview": "06_modifier_application_sequence_diagram.dot",
+      "details": []
+    },
+    "07_data_model_diagram": {
+      "overview": "07_data_model_diagram.dot",
+      "details": []
+    },
+    "08_stat_effect_system_map": {
+      "overview": "08_stat_effect_system_map.dot",
+      "details": []
+    },
+    "09_effect_component_diagram": {
+      "overview": "09_effect_component_diagram.dot",
+      "details": []
+    },
+    "10_effect_core_class_diagram": {
+      "overview": "10_effect_core_class_diagram.dot",
+      "details": [
+        "details/10_effect_core_class_diagram__detail_01_definition_model.dot",
+        "details/10_effect_core_class_diagram__detail_02_runtime_contracts.dot",
+        "details/10_effect_core_class_diagram__detail_03_execution_commit.dot"
+      ]
+    },
+    "11_effect_execution_sequence_diagram": {
+      "overview": "11_effect_execution_sequence_diagram.dot",
+      "details": [
+        "details/11_effect_execution_sequence_diagram__detail_01_intent_target_bind.dot",
+        "details/11_effect_execution_sequence_diagram__detail_02_resolve_compose.dot",
+        "details/11_effect_execution_sequence_diagram__detail_03_commit_react.dot"
+      ]
+    },
+    "12_target_selection_activity_diagram": {
+      "overview": "12_target_selection_activity_diagram.dot",
+      "details": []
+    },
+    "13_effect_data_model_diagram": {
+      "overview": "13_effect_data_model_diagram.dot",
+      "details": []
+    },
+    "14_effect_lifecycle_state_diagram": {
+      "overview": "14_effect_lifecycle_state_diagram.dot",
+      "details": [
+        "details/14_effect_lifecycle_state_diagram__detail_01_request_validation.dot",
+        "details/14_effect_lifecycle_state_diagram__detail_02_resolve_planning.dot",
+        "details/14_effect_lifecycle_state_diagram__detail_03_commit_reaction.dot"
+      ]
+    },
+    "15_fireball_effect_integration_diagram": {
+      "overview": "15_fireball_effect_integration_diagram.dot",
+      "details": []
+    },
+    "16_core_runtime_component_diagram": {
+      "overview": "16_core_runtime_component_diagram.dot",
+      "details": [
+        "details/16_core_runtime_component_diagram__detail_01_identity_inputs.dot",
+        "details/16_core_runtime_component_diagram__detail_02_consumers_commit_plans.dot",
+        "details/16_core_runtime_component_diagram__detail_03_commit_reactions.dot",
+        "details/16_core_runtime_component_diagram__detail_04_observation_trace.dot"
+      ]
+    },
+    "17_skill_core_class_diagram": {
+      "overview": "17_skill_core_class_diagram.dot",
+      "details": []
+    },
+    "18_skill_lifecycle_state_diagram": {
+      "overview": "18_skill_lifecycle_state_diagram.dot",
+      "details": []
+    },
+    "19_skill_execution_sequence_diagram": {
+      "overview": "19_skill_execution_sequence_diagram.dot",
+      "details": []
+    },
+    "20_skill_timeline_activity_diagram": {
+      "overview": "20_skill_timeline_activity_diagram.dot",
+      "details": [
+        "details/20_skill_timeline_activity_diagram__detail_01_validate_cost.dot",
+        "details/20_skill_timeline_activity_diagram__detail_02_windup_release.dot",
+        "details/20_skill_timeline_activity_diagram__detail_03_commit_recovery.dot"
+      ]
+    },
+    "21_skill_data_model_diagram": {
+      "overview": "21_skill_data_model_diagram.dot",
+      "details": [
+        "details/21_skill_data_model_diagram__detail_01_definition_data.dot",
+        "details/21_skill_data_model_diagram__detail_02_runtime_execution.dot",
+        "details/21_skill_data_model_diagram__detail_03_public_commit_evidence.dot"
+      ]
+    },
+    "22_combat_core_class_diagram": {
+      "overview": "22_combat_core_class_diagram.dot",
+      "details": []
+    },
+    "23_damage_resolution_activity_diagram": {
+      "overview": "23_damage_resolution_activity_diagram.dot",
+      "details": []
+    },
+    "24_damage_execution_sequence_diagram": {
+      "overview": "24_damage_execution_sequence_diagram.dot",
+      "details": []
+    },
+    "25_combat_data_model_diagram": {
+      "overview": "25_combat_data_model_diagram.dot",
+      "details": []
+    },
+    "26_status_core_class_diagram": {
+      "overview": "26_status_core_class_diagram.dot",
+      "details": []
+    },
+    "27_status_lifecycle_state_diagram": {
+      "overview": "27_status_lifecycle_state_diagram.dot",
+      "details": []
+    },
+    "28_status_apply_sequence_diagram": {
+      "overview": "28_status_apply_sequence_diagram.dot",
+      "details": []
+    },
+    "29_status_tick_activity_diagram": {
+      "overview": "29_status_tick_activity_diagram.dot",
+      "details": []
+    },
+    "30_status_data_model_diagram": {
+      "overview": "30_status_data_model_diagram.dot",
+      "details": []
+    },
+    "38_full_framework_dependency_map": {
+      "overview": "38_full_framework_dependency_map.dot",
+      "details": []
+    },
+    "39_runtime_ports_and_adapters": {
+      "overview": "39_runtime_ports_and_adapters.dot",
+      "details": []
+    },
+    "40_resolve_commit_reaction_sequence": {
+      "overview": "40_resolve_commit_reaction_sequence.dot",
+      "details": []
+    },
+    "41_deterministic_replay_envelope": {
+      "overview": "41_deterministic_replay_envelope.dot",
+      "details": []
+    }
   }
 }

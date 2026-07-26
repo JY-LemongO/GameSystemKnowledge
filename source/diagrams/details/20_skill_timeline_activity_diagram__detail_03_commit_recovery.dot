@@ -1,0 +1,24 @@
+digraph G {
+  graph [fontname="Noto Sans KR", bgcolor="#ffffff", margin=0.12, pad=0.25, ranksep=0.78, nodesep=0.76, newrank=true, splines=polyline, label="Skill Timeline 상세 3/3 · 원자 commit과 후속 처리", labelloc=t, fontsize=18];
+  node [fontname="Noto Sans KR", shape=box, style="rounded,filled", color="#bac7db", penwidth=1.4, fillcolor="#ffffff", fontcolor="#182033", margin="0.18,0.11", width=3.0, height=0.56];
+  edge [fontname="Noto Sans KR", color="#59687e", fontcolor="#46566e", fontsize=10, arrowsize=0.8, penwidth=1.3];
+  rankdir=TB;
+
+  ReleasePlan [style="rounded,dashed,filled", label="<<internal project model · product-only>>\nSkillReleasePlan\n비용·쿨다운 mutation + EffectBundlePlan", fillcolor="#e9fbff", color="#54b7cf"];
+  Compose [label="<<실행 참조와 동등한 경계>>\n하나의 CommitPlan 조합\nversion precondition + planned outbox", fillcolor="#fff7e6", color="#e0ad4e"];
+  Commit [label="RuntimeCommitter\n상태 + outbox 원자 commit\n부분 변경은 허용하지 않음", fillcolor="#eefbf6", color="#61b99a"];
+  Outcome [shape=diamond, label="commit이 승인됐는가?", fillcolor="#f3eefc", color="#ab8fe0"];
+  CommitFail [label="<<public contract · 실행 C#>>\nSkillResult(FailureReason)\nversion / invariant 실패 · mutation / event 없음", fillcolor="#fff0f3", color="#e07b91"];
+  Facts [label="<<실행 증거>> Committed facts\nSkillCommitted · DamageCommitted\ncommit 성공 뒤에만 관찰 가능", fillcolor="#e9fbff", color="#54b7cf"];
+  Reaction [label="ReactionQueue\ncommitted fact를 후속 command로 직렬화\nBurn 등 상태 변경은 commit 이후 실행", fillcolor="#f3eefc", color="#ab8fe0"];
+  Recovery [style="rounded,dashed,filled", label="<<product-only presentation>>\nRecovery / visual follow-through\n권위 상태나 outbox를 소유하지 않음", fillcolor="#f0f3f9", color="#99a8bd"];
+
+  { rank=same; CommitFail; Facts; }
+
+  ReleasePlan -> Compose [style=dashed, label="release에서 조합"];
+  Compose -> Commit -> Outcome;
+  Outcome -> CommitFail [label="아니오 · stale / invariant", color="#c35f76", fontcolor="#9d4358"];
+  Outcome -> Facts [label="예 · 성공", color="#4f8b74", fontcolor="#3f735f"];
+  Facts -> Reaction [label="commit 이후"];
+  Reaction -> Recovery [style=dashed, label="표현 단계"];
+}

@@ -321,25 +321,86 @@
 <h2 id="핵심-컴포넌트">
       핵심 컴포넌트
      </h2>
-<figure class="diagram">
-<div class="dh">
-<strong>
-        Core Runtime 컴포넌트
-       </strong>
-<div class="da">
-<a class="small" href="../assets/diagrams/16_core_runtime_component_diagram.svg" target="_blank">
-         SVG
-        </a>
-<a class="small" href="../assets/diagrams/16_core_runtime_component_diagram.png" target="_blank">
-         PNG
-        </a>
+<section aria-labelledby="core-runtime-diagram-story-title" class="diagram-story" data-diagram-series="16_core_runtime_component_diagram" id="core-runtime-diagram-story">
+<div class="diagram-story-head">
+<div>
+<span class="section-kicker">Diagram story · runtime architecture</span>
+<h3 id="core-runtime-diagram-story-title">Core Runtime을 네 개의 책임 경계로 읽기</h3>
+<p>identity와 입력, 소비 시스템과 plan, atomic commit과 reaction, 관찰과 trace를 분리한다. 시스템 간 직접 참조 대신 공통 runtime 경계를 따라간다.</p>
 </div>
+<span class="diagram-story-count">4 DETAIL VIEWS</span>
 </div>
-<img alt="Core Runtime 컴포넌트" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/16_core_runtime_component_diagram.svg"/>
-<figcaption class="cap">
-       여러 게임 시스템이 직접 서로를 참조하지 않고 Core Runtime의 공통 계약을 통해 연결되는 구조다.
-      </figcaption>
+<ol class="diagram-step-list">
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Identity, context, deterministic inputs</h4>
+<p>entity·tag·source provenance가 실행 context로 모이고, definition·time·seed가 각 시스템의 결정적 입력 lane으로 전달된다.</p>
+<ul>
+<li>ContextFactory가 actor·target·source를 한 요청 단위로 묶는다.</li>
+<li>시간과 난수는 숨은 전역 상태가 아니라 명시적 입력이다.</li>
+</ul>
+</div>
+<figure aria-labelledby="core-runtime-detail-01-title" class="diagram" data-diagram-view="detail-01">
+<div class="dh"><strong id="core-runtime-detail-01-title">01 · Identity, context &amp; inputs</strong><div class="da"><a class="small" href="../assets/diagrams/details/16_core_runtime_component_diagram__detail_01_identity_inputs.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/16_core_runtime_component_diagram__detail_01_identity_inputs.png" target="_blank">PNG</a></div></div>
+<img alt="Core Runtime의 identity와 context 및 결정적 입력 서비스 관계" aria-describedby="core-runtime-detail-01-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/16_core_runtime_component_diagram__detail_01_identity_inputs.svg"/>
+<figcaption class="cap" id="core-runtime-detail-01-caption">EntityRegistry·TagService·SourceTracker가 ContextFactory로 수렴하고, DataRegistry·TimeService·RandomStream이 시스템별 입력을 공급한다.</figcaption>
 </figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Consumer systems and commit-plan lanes</h4>
+<p>Stat·Effect·Skill·Status·Combat은 서로의 상태를 직접 쓰지 않는다. 각자 계산한 변경 의도를 plan lane으로 제출한다.</p>
+<ul>
+<li>Context identity와 도메인 plan이 commit 입력을 이룬다.</li>
+<li>RuntimeCommitter 앞에서 모든 변경 경로가 하나로 모인다.</li>
+</ul>
+</div>
+<figure aria-labelledby="core-runtime-detail-02-title" class="diagram" data-diagram-view="detail-02">
+<div class="dh"><strong id="core-runtime-detail-02-title">02 · Consumers &amp; commit plans</strong><div class="da"><a class="small" href="../assets/diagrams/details/16_core_runtime_component_diagram__detail_02_consumers_commit_plans.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/16_core_runtime_component_diagram__detail_02_consumers_commit_plans.png" target="_blank">PNG</a></div></div>
+<img alt="게임 시스템이 각자의 commit plan을 RuntimeCommitter에 제출하는 구조" aria-describedby="core-runtime-detail-02-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/16_core_runtime_component_diagram__detail_02_consumers_commit_plans.svg"/>
+<figcaption class="cap" id="core-runtime-detail-02-caption">도메인별 계산 결과는 즉시 mutation이 아니라 plan이다. 이 경계가 다중 시스템 변경을 한 commit으로 조합할 수 있게 한다.</figcaption>
+</figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Atomic commit, facts, reactions</h4>
+<p>RuntimeCommitter가 state와 planned outbox를 같은 성공 단위로 확정한 뒤, committed fact가 dispatcher와 ReactionQueue로 이동한다.</p>
+<ul>
+<li>commit 실패 시 state와 outbox가 모두 그대로다.</li>
+<li>reaction은 Effect·Status의 새 command로 되돌아간다.</li>
+</ul>
+</div>
+<figure aria-labelledby="core-runtime-detail-03-title" class="diagram" data-diagram-view="detail-03">
+<div class="dh"><strong id="core-runtime-detail-03-title">03 · Atomic commit, facts &amp; reactions</strong><div class="da"><a class="small" href="../assets/diagrams/details/16_core_runtime_component_diagram__detail_03_commit_reactions.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/16_core_runtime_component_diagram__detail_03_commit_reactions.png" target="_blank">PNG</a></div></div>
+<img alt="RuntimeCommitter에서 durable outbox와 EventBus 및 ReactionQueue로 이어지는 흐름" aria-describedby="core-runtime-detail-03-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/16_core_runtime_component_diagram__detail_03_commit_reactions.svg"/>
+<figcaption class="cap" id="core-runtime-detail-03-caption">반응은 계산 중간 이벤트가 아니라 committed fact에서 시작한다. 이 순서가 rollback과 replay에서 같은 결과를 보장한다.</figcaption>
+</figure>
+</li>
+<li class="diagram-step">
+<div class="diagram-step-copy">
+<h4>Observation and DebugTrace</h4>
+<p>계산 breakdown과 committed-fact 관찰을 상태 변경 경로에서 떼어내 하나의 correlation trace로 모은다.</p>
+<ul>
+<li>Stat·Effect·Combat은 각자의 계산 증거를 남긴다.</li>
+<li>EventBus 관찰은 이미 확정된 사실만 기록한다.</li>
+</ul>
+</div>
+<figure aria-labelledby="core-runtime-detail-04-title" class="diagram" data-diagram-view="detail-04">
+<div class="dh"><strong id="core-runtime-detail-04-title">04 · Observation &amp; DebugTrace</strong><div class="da"><a class="small" href="../assets/diagrams/details/16_core_runtime_component_diagram__detail_04_observation_trace.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/details/16_core_runtime_component_diagram__detail_04_observation_trace.png" target="_blank">PNG</a></div></div>
+<img alt="Stat Effect Combat의 관찰 정보와 committed fact가 DebugTrace로 모이는 구조" aria-describedby="core-runtime-detail-04-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/details/16_core_runtime_component_diagram__detail_04_observation_trace.svg"/>
+<figcaption class="cap" id="core-runtime-detail-04-caption">관찰 lane은 state mutation을 소유하지 않는다. 계산 근거와 commit 사실을 correlationId로 연결해 디버깅과 재현에 사용한다.</figcaption>
+</figure>
+</li>
+</ol>
+<details class="diagram-overview">
+<summary>Core Runtime 전체 연결 지도 보기</summary>
+<figure aria-labelledby="core-runtime-overview-title" class="diagram" data-diagram-view="overview">
+<div class="dh"><strong id="core-runtime-overview-title">Core Runtime 컴포넌트 · Overview</strong><div class="da"><a class="small" href="../assets/diagrams/16_core_runtime_component_diagram.svg" target="_blank">SVG</a><a class="small" href="../assets/diagrams/16_core_runtime_component_diagram.png" target="_blank">PNG</a></div></div>
+<img alt="Core Runtime의 전체 컴포넌트와 시스템 연결 지도" aria-describedby="core-runtime-overview-caption" class="zoomable" data-zoom="" decoding="async" loading="lazy" src="../assets/diagrams/16_core_runtime_component_diagram.svg"/>
+<figcaption class="cap" id="core-runtime-overview-caption">네 상세 장을 읽은 뒤 입력부터 plan, atomic commit, reaction, observation까지 전체 경로를 한 화면에서 복습한다.</figcaption>
+</figure>
+</details>
+</section>
 <div class="grid cols2">
 <div class="card">
 <h3 id="entityid-entityref">
